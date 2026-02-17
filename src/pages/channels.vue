@@ -1,148 +1,144 @@
 <template>
-  <div class="insta-app">
+  <div class="lumine-app">
     
-    <nav class="insta-nav">
+    <nav class="lumine-nav">
       <div class="nav-content">
-        <h1 class="insta-logo">Social App</h1>
+        <h1 class="lumine-logo">Lumine.</h1>
         <div class="nav-icons">
-          <button @click="logout" class="text-btn">Déconnexion</button>
+          <button @click="openModal" class="btn-primary">+ Créer</button>
+          <button @click="logout" class="btn-text danger">Déconnexion</button>
         </div>
       </div>
     </nav>
 
-    <div class="main-container">
+    <div class="main-layout">
       
-      <div class="stories-tray">
-        <div class="story-item" @click="createChannel">
-          <div class="story-ring add-ring">
-            <div class="story-avatar add-avatar"><span>+</span></div>
-          </div>
-          <span class="story-name">Nouveau</span>
-        </div>
-
-        <div 
-          v-for="channel in channelsList" 
-          :key="channel.id" 
-          class="story-item"
-          @click="changeChannel(channel)"
-        >
-          <div class="story-ring" :class="{ active: currentChannelId === channel.id }">
-            <div class="story-avatar">
-              {{ channel.name ? channel.name.charAt(0).toUpperCase() : '#' }}
-            </div>
-          </div>
-          <span class="story-name">{{ channel.name }}</span>
-        </div>
-      </div>
-
-      <div class="feed-container">
+      <!-- FEED SECTION (LEFT) -->
+      <main class="feed-content">
         
         <div v-if="loadingFeed" class="loading-spinner"></div>
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
         
         <div v-if="currentChannelData && !loadingFeed">
           
-          <div v-if="currentChannelData.publications && currentChannelData.publications.length > 0">
-            <article v-for="pub in currentChannelData.publications" :key="pub['@id']" class="insta-post">
-              
-              <header class="post-header">
-                <div class="user-avatar-small">
-                  {{ pub.title ? pub.title.charAt(0).toUpperCase() : '?' }}
-                </div>
-                <div class="header-info">
-                  <span class="username">{{ pub.title || 'Anonyme' }}</span>
-                  <span class="location">#{{ currentChannelData.name }}</span>
-                </div>
-              </header>
+          <div class="feed-header-info">
+             <h2 class="current-channel-title">#{{ currentChannelData.name }}</h2>
+             <p style="color: grey">{{ currentChannelData.publications?.length || 0 }} publications</p>
+          </div>
 
-              <div class="post-image-container">
-                <img 
-                  v-if="getPostImageUrl(pub)" 
-                  :src="getPostImageUrl(pub)" 
-                  class="real-image" 
-                  alt="Post content"
-                  @error="onImgError"
-                />
-                <div v-else class="text-as-image">
-                  <p>{{ pub.body }}</p>
-                </div>
+          <div v-if="currentChannelData.publications && currentChannelData.publications.length > 0" class="feed-grid">
+            
+            <article 
+              v-for="pub in currentChannelData.publications" 
+              :key="pub['@id']" 
+              class="lumine-post"
+              @click="viewPost(pub)"
+            >
+              <!-- IMAGE OR TEXT PLACEHOLDER -->
+              <img 
+                v-if="hasImage(pub)" 
+                :src="getPostImageUrl(pub)" 
+                class="post-image" 
+                alt="Post content"
+                loading="lazy"
+              />
+              <div v-else class="post-text-placeholder">
+                 <p class="post-text-content">{{ pub.body }}</p>
               </div>
 
-              <div class="post-actions">
-                <div class="actions-left">
-                  <span class="action-icon">❤️</span>
-                  <span class="action-icon">💬</span>
-                </div>
+              <!-- HOVER OVERLAY -->
+              <div class="post-overlay">
+                 <div class="overlay-stat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <span>0</span>
+                 </div>
               </div>
 
-              <div class="post-caption-section">
-                <div class="caption-text">
-                  <span class="username-caption">{{ pub.title }}</span> 
-                  {{ pub.body }}
-                </div>
-              </div>
             </article>
+
           </div>
 
           <div v-else class="empty-feed">
-             <div class="empty-icon">📷</div>
-             <h3>Aucune publication</h3>
-             <p>Le salon <b>#{{ currentChannelData.name }}</b> est vide.</p>
-             <button class="cta-btn" @click="openModal">Créer le premier post</button>
+             <p>Aucune publication encore.</p>
+             <button class="btn-text" @click="openModal">Soyez le premier à publier.</button>
           </div>
 
         </div>
-      </div>
+      </main>
+
+      <!-- SIDEBAR (RIGHT) -->
+      <aside class="lumine-sidebar">
+        
+        <div class="sidebar-header">
+           <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+           <span>CHAÎNES</span>
+        </div>
+
+        <div class="channel-list">
+          <div 
+             v-for="channel in channelsList" 
+             :key="channel.id"
+             class="channel-item"
+             :class="{ active: currentChannelId === channel.id }"
+             @click="changeChannel(channel)"
+          >
+             <svg class="hash-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+             <span class="channel-name">{{ channel.name }}</span>
+          </div>
+        </div>
+
+        <button class="create-channel-btn" @click="createChannel">
+           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+           Nouveau salon
+        </button>
+
+      </aside>
+
     </div>
 
-    <nav class="bottom-nav">
-      <div class="nav-item">🏠</div>
-      <div class="nav-item plus-btn-container" @click="openModal">
-        <div class="plus-btn-icon">+</div>
-      </div>
-      <div class="nav-item">👤</div>
-    </nav>
+    <!-- FLOATING ACTION BUTTON -->
+    <button class="fab-create" @click="openModal" title="Nouvelle publication">
+       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
 
+    <!-- MODAL POST -->
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
+      <div class="modal-card">
         
         <div class="modal-header">
-          <button @click="closeModal" class="cancel-btn">Annuler</button>
-          <h3>Nouveau post</h3>
-          <button @click="publishPost" class="share-btn" :disabled="publishing">
-            {{ publishing ? 'Envoi...' : 'Partager' }}
+          <button @click="closeModal" class="btn-text">Annuler</button>
+          <span style="font-weight:600">Nouveau post</span>
+          <button @click="publishPost" class="btn-text" style="color: #0095f6" :disabled="publishing">
+            {{ publishing ? '...' : 'Partager' }}
           </button>
         </div>
 
         <div class="modal-body">
-          <div class="modal-user-info">
-             <div class="user-avatar-xs">Moi</div>
-             <span class="posting-in">Dans : <strong>#{{ currentChannelData?.name || '...' }}</strong></span>
-          </div>
-          
           <input 
             v-model="newPostTitle" 
             type="text" 
-            class="modal-input-title" 
-            placeholder="Titre obligatoire..." 
+            class="modal-input" 
+            placeholder="Titre..." 
+            style="font-weight:bold; font-size:16px;"
           />
           
           <textarea 
             v-model="newPostContent" 
-            class="modal-textarea" 
-            placeholder="Écrivez une légende..."
+            class="modal-input" 
+            placeholder="Légende..."
+            rows="3"
+            style="border:none; margin-bottom:0;"
           ></textarea>
 
-          <div class="image-upload-zone">
-            <label for="file-upload" class="custom-file-upload">
-              📷 Ajouter une photo
-            </label>
-            <input id="file-upload" type="file" @change="handleFileSelect" accept="image/*" />
-            
-            <div v-if="previewImage" class="preview-container">
-              <img :src="previewImage" class="preview-img" />
-              <button @click="removeImage" class="remove-img-btn">×</button>
-            </div>
+          <label for="file-upload" class="file-upload-label">
+             <span v-if="!selectedFile">📷 Ajouter une photo</span>
+             <span v-else>Changer la photo</span>
+          </label>
+          <input id="file-upload" type="file" @change="handleFileSelect" accept="image/*" style="display:none" />
+          
+          <div v-if="previewImage">
+             <img :src="previewImage" class="preview-img" />
+             <button @click="removeImage" class="btn-text danger" style="width:100%">Supprimer l'image</button>
           </div>
 
         </div>
@@ -198,7 +194,10 @@ async function fetchChannelsList() {
     if (channelsList.value.length > 0) {
       changeChannel(channelsList.value[0])
     }
-  } catch (e) { console.error(e) } finally { loadingList.value = false }
+  } catch (e) {
+      console.error(e)
+      errorMsg.value = "Erreur chargement salons"
+  } finally { loadingList.value = false }
 }
 
 // 2. CHANGER DE SALON (Lecture Feed)
@@ -217,15 +216,19 @@ async function changeChannel(channelObj) {
     if(res.ok) {
         const fullData = await res.json()
         currentChannelData.value = fullData
+        if (!fullData.publications) fullData.publications = [] // Ensure array
         
-        // Force loading messages if missing
-        if (!fullData.publications) throw new Error("Partial load")
+        // Sometimes API returns minimal info, check if pubs exist
+        if (fullData.publications.length === 0) {
+             // Optional: Try specialized call if needed, but standard should work
+        }
+
     } else {
         throw new Error("Channel fetch error")
     }
 
   } catch (e) {
-    // Fallback: fetch messages manually by ID
+    // Fallback if detail fetch fails, try listing pubs
     try {
         const resPubs = await fetch(`${API_BASE}/${SLUG}/publications?channel.id=${channelObj.id}`, {
             headers: { 'Authorization': `Bearer ${userStore.token}` }
@@ -256,7 +259,7 @@ async function createChannel() {
 }
 
 
-// 4. PUBLICATION POST + IMAGE (CORRIGÉ)
+// 4. PUBLICATION
 async function publishPost() {
   if (!newPostTitle.value.trim()) {
     alert("Le titre est obligatoire.")
@@ -266,13 +269,10 @@ async function publishPost() {
   publishing.value = true
   
   try {
-    // A. Trouver l'IRI du salon
     let channelIRI = currentChannelData.value?.['@id']
     if (!channelIRI) {
          channelIRI = `/api/${SLUG}/channels/${currentChannelId.value}`
     }
-
-    console.log("Envoi POST vers le salon :", channelIRI)
 
     const postPayload = {
       title: newPostTitle.value,
@@ -280,10 +280,7 @@ async function publishPost() {
       channel: channelIRI 
     }
 
-    // 🔥 CORRECTION : Ajout du /ws-n/ dans l'URL
-    const urlPost = `${API_BASE}/${SLUG}/publications`
-
-    const resPost = await fetch(urlPost, {
+    const resPost = await fetch(`${API_BASE}/${SLUG}/publications`, {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${userStore.token}`, 
@@ -292,38 +289,21 @@ async function publishPost() {
       body: JSON.stringify(postPayload)
     })
 
-    // Lecture sécurisée de la réponse
-    const responseText = await resPost.text()
+    if (!resPost.ok) throw new Error("Erreur publication")
+    
+    const createdPost = await resPost.json()
 
-    if (!resPost.ok) {
-      console.error("Erreur API :", responseText)
-      throw new Error(`Erreur ${resPost.status}. Voir console.`)
-    }
-
-    const createdPost = JSON.parse(responseText)
-    console.log("Post créé :", createdPost)
-
-    // B. Envoi de l'image (si présente)
+    // Envoi image
     if (selectedFile.value) {
       const formData = new FormData()
       formData.append('file', selectedFile.value)
       formData.append('publication', createdPost['@id']) 
 
-      // 🔥 CORRECTION : Ajout du /ws-n/ dans l'URL media
-      const urlMedia = `${API_BASE}/${SLUG}/media`
-      
-      console.log("Envoi MEDIA vers :", urlMedia)
-
-      const resMedia = await fetch(urlMedia, {
+      await fetch(`${API_BASE}/${SLUG}/media`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${userStore.token}` },
         body: formData
       })
-
-      if (!resMedia.ok) {
-        console.warn("Erreur image", await resMedia.text())
-        alert("Post publié, mais l'image n'a pas pu être envoyée.")
-      }
     }
 
     closeModal()
@@ -332,7 +312,6 @@ async function publishPost() {
 
   } catch (e) {
     alert("Erreur : " + e.message)
-    console.error(e)
   } finally {
     publishing.value = false
   }
@@ -352,18 +331,22 @@ function removeImage() {
   previewImage.value = null
 }
 
+function hasImage(pub) {
+   return pub.medias && pub.medias.length > 0;
+}
+
 function getPostImageUrl(pub) {
-  // Adaptation selon le format de retour API (tableau medias ou propriété media)
-  // On regarde dans medias[]
   if (pub.medias && pub.medias.length > 0) {
-    if (pub.medias[0].contentUrl) return BASE_URL + pub.medias[0].contentUrl
-    return BASE_URL + pub.medias[0] // Si c'est juste un string
+    const m = pub.medias[0]
+    if (m.contentUrl) return BASE_URL + m.contentUrl
+    return BASE_URL + m
   }
   return null
 }
 
-function onImgError(e) {
-  e.target.style.display = 'none'
+function viewPost(pub) {
+    // Optional
+    console.log("View post", pub)
 }
 
 // Navigation
@@ -394,29 +377,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Ajouts Upload */
-.image-upload-zone {
-  margin-top: 15px; border-top: 1px solid #efefef; padding-top: 10px;
-}
-input[type="file"] { display: none; }
-.custom-file-upload {
-  display: inline-block; padding: 6px 12px; cursor: pointer;
-  background: #fafafa; border: 1px solid #dbdbdb; border-radius: 4px;
-  font-size: 14px; font-weight: 600;
-}
-.preview-container {
-  position: relative; margin-top: 10px; width: 100px; height: 100px;
-}
-.preview-img {
-  width: 100%; height: 100%; object-fit: cover; border-radius: 4px;
-}
-.remove-img-btn {
-  position: absolute; top: -5px; right: -5px; background: red; color: white;
-  border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;
-}
-.real-image { width: 100%; height: 100%; object-fit: cover; }
-.cta-btn {
-  margin-top: 15px; background-color: #0095f6; color: white; border: none;
-  padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;
-}
+/* Scoped overrides if needed */
 </style>
