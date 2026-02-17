@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-const slug = 'ws-n'
+const slug = 'ws-v'
 const token = localStorage.getItem('token') || ''
 const channels = ref<any[]>([])
 

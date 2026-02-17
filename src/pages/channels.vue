@@ -180,7 +180,7 @@ const loadingFeed = ref(false)
 const errorMsg = ref('')
 
 // Config
-const SLUG = 'ws-n' 
+const SLUG = 'ws-v' 
 const API_BASE = 'https://wra506d.davidannebicque.ovh/api'
 const BASE_URL = 'https://wra506d.davidannebicque.ovh'
 

@@ -44,7 +44,7 @@ const displayName = ref('')
 const errorMsg = ref('')
 
 // --- CONFIGURATION ---
-const slug = 'ws-n' 
+const slug = 'ws-v' 
 const API_URL = 'https://wra506d.davidannebicque.ovh/api'
 
 // --- ACTIONS ---
