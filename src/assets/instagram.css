@@ -2,7 +2,7 @@
 
 /* --- RESET & GLOBAL --- */
 .lumine-app {
-  background-color: #f4f4f5;
+  background-color: #d2d2d2;
   min-height: 100vh;
   font-family: 'Afacad', sans-serif;
   color: #111827;
@@ -24,7 +24,6 @@
 /* --- HEADER --- */
 .lumine-nav {
   background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -129,7 +128,6 @@
   line-height: 1.6;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
 }
 

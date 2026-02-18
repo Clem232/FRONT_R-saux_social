@@ -24,7 +24,7 @@
 
     <!-- Formulaire à droite -->
     <div class="auth-card">
-      <h1 class="logo">Lumine.</h1>
+      <h1 class="logo">Lumi.</h1>
       <h2 class="auth-title">{{ isLogin ? 'Connexion' : 'Inscription' }}</h2>
 
       <form @submit.prevent="submit" class="auth-form">

@@ -1,0 +1,275 @@
+import type { Publication, Media } from '@/types'
+import { getApiUrl, getAuthHeaders, getMediaUrl, API_CONFIG } from './api.config'
+
+/**
+ * Convertir un fichier en base64
+ */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      const result = reader.result as string
+      const base64 = result.split(',')[1] || ''
+      resolve(base64)
+    }
+    reader.onerror = (error) => reject(error)
+  })
+}
+
+/**
+ * Service pour gérer les publications
+ */
+export const publicationService = {
+  
+  /**
+   * Créer une nouvelle publication
+   */
+  async create(token: string, data: { title: string; body: string; channelIRI: string }): Promise<Publication> {
+    const res = await fetch(getApiUrl('/publications'), {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({
+        title: data.title,
+        body: data.body,
+        channel: data.channelIRI
+      })
+    })
+    
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}))
+      throw new Error(error.detail || error.message || 'Erreur lors de la publication')
+    }
+    
+    return await res.json()
+  },
+
+  /**
+   * Supprimer une publication
+   */
+  async delete(token: string, id: number): Promise<void> {
+    const res = await fetch(getApiUrl(`/publications/${id}`), {
+      method: 'DELETE',
+      headers: getAuthHeaders(token)
+    })
+    
+    if (!res.ok && res.status !== 204) {
+      const errorText = await res.text() 
+      console.error("Erreur API DELETE /publications:", res.status, errorText)
+      throw new Error("Impossible de supprimer cette publication")
+    }
+  },
+
+  /**
+   * Récupérer les commentaires d'une publication
+   */
+  async getComments(token: string, publicationId: number): Promise<any[]> {
+    try {
+      const iri = `/api/${API_CONFIG.SLUG}/publications/${publicationId}`
+      const res = await fetch(getApiUrl(`/comments?publication=${encodeURIComponent(iri)}`), {
+        headers: getAuthHeaders(token)
+      })
+      if (res.ok) {
+        const data = await res.json()
+        return data['hydra:member'] || []
+      }
+      return []
+    } catch (e) {
+      console.warn("Impossible de récupérer les commentaires", e)
+      return []
+    }
+  },
+
+  /**
+   * Supprimer un commentaire
+   */
+  async deleteComment(token: string, commentId: number): Promise<void> {
+    const res = await fetch(getApiUrl(`/comments/${commentId}`), {
+      method: 'DELETE',
+      headers: getAuthHeaders(token)
+    })
+    if (!res.ok && res.status !== 204) {
+      console.warn(`Impossible de supprimer le commentaire ${commentId}`, res.status)
+    }
+  },
+
+  /**
+   * Récupérer les réactions d'une publication
+   */
+  async getReactions(token: string, publicationId: number): Promise<any[]> {
+    try {
+      const iri = `/api/${API_CONFIG.SLUG}/publications/${publicationId}`
+      const res = await fetch(getApiUrl(`/reactions?publication=${encodeURIComponent(iri)}`), {
+        headers: getAuthHeaders(token)
+      })
+      if (res.ok) {
+        const data = await res.json()
+        return data['hydra:member'] || []
+      }
+      return []
+    } catch (e) {
+      console.warn("Impossible de récupérer les réactions", e)
+      return []
+    }
+  },
+
+  /**
+   * Supprimer une réaction
+   */
+  async deleteReaction(token: string, reactionId: number): Promise<void> {
+    const res = await fetch(getApiUrl(`/reactions/${reactionId}`), {
+      method: 'DELETE',
+      headers: getAuthHeaders(token)
+    })
+    if (!res.ok && res.status !== 204) {
+      console.warn(`Impossible de supprimer la réaction ${reactionId}`, res.status)
+    }
+  },
+
+  /**
+   * Ajouter une réaction
+   */
+  async addReaction(token: string, publicationIRI: string, type: string = 'like'): Promise<any> {
+    const payload = {
+      publication: publicationIRI,
+      type: type
+    }
+    console.log('[addReaction] payload:', JSON.stringify(payload))
+    const res = await fetch(getApiUrl('/reactions'), {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(payload)
+    })
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      console.error('[addReaction] Erreur:', res.status, errBody)
+      throw new Error(`Impossible d'ajouter la réaction (${res.status})`)
+    }
+    // 201 Created
+    return await res.json().catch(() => null)
+  },
+
+  /**
+   * Ajouter un commentaire
+   */
+  async addComment(token: string, publicationIRI: string, body: string): Promise<any> {
+    const payload = {
+      publication: publicationIRI,
+      body: body
+    }
+    console.log('[addComment] payload:', JSON.stringify(payload))
+    const res = await fetch(getApiUrl('/comments'), {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify(payload)
+    })
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      console.error('[addComment] Erreur:', res.status, errBody)
+      throw new Error(`Impossible d'ajouter le commentaire (${res.status})`)
+    }
+    return await res.json()
+  },
+
+  /**
+   * Uploader un média pour une publication
+   */
+  async uploadMedia(token: string, file: File, publicationIRI: string): Promise<Media> {
+    // Essayer d'abord avec JSON/base64
+    try {
+      const fileBase64 = await fileToBase64(file)
+      
+      const res = await fetch(getApiUrl('/media'), {
+        method: 'POST',
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({
+          originalName: file.name,
+          publication: publicationIRI,
+          file: fileBase64
+        })
+      })
+      
+      if (res.ok) {
+        return await res.json()
+      }
+    } catch {
+      // Fallback to multipart
+    }
+    
+    // Fallback: multipart/form-data
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('publication', publicationIRI)
+    formData.append('originalName', file.name)
+    
+    const res = await fetch(getApiUrl('/media'), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    })
+    
+    if (!res.ok) {
+      throw new Error('Erreur lors de l\'upload du média')
+    }
+    
+    return await res.json()
+  },
+
+  /**
+   * Supprimer un média
+   */
+  async deleteMedia(token: string, mediaId: number): Promise<void> {
+    const res = await fetch(getApiUrl(`/media/${mediaId}`), {
+      method: 'DELETE',
+      headers: getAuthHeaders(token)
+    })
+    // 204 No Content = succès
+    if (!res.ok && res.status !== 204) {
+      console.warn(`Impossible de supprimer le média ${mediaId}`, res.status)
+    }
+  },
+
+  /**
+   * Vérifier si une publication a une image
+   */
+  hasImage(pub: Publication): boolean {
+    return pub.medias && pub.medias.length > 0
+  },
+
+  /**
+   * Obtenir l'URL de l'image d'une publication
+   */
+  getImageUrl(pub: Publication): string | null {
+    if (pub.medias && pub.medias.length > 0) {
+      const media = pub.medias[0]
+      if (!media) return null
+      if (typeof media === 'string') {
+        return getMediaUrl(media)
+      }
+      if (media.contentUrl) {
+        return getMediaUrl(media.contentUrl)
+      }
+    }
+    return null
+  },
+
+  /**
+   * Valider un fichier avant upload
+   */
+  validateFile(file: File): { valid: boolean; error?: string } {
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    
+    if (file.size > maxSize) {
+      return { valid: false, error: "L'image est trop grande. Maximum 5MB." }
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+      return { valid: false, error: "Format non supporté. Utilisez JPG, PNG, GIF ou WebP." }
+    }
+    
+    return { valid: true }
+  }
+}
+
+export default publicationService
