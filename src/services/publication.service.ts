@@ -78,9 +78,11 @@ export const publicationService = {
     if (fullPub.medias && fullPub.medias.length > 0) {
       for (const m of fullPub.medias) {
         const mediaId = typeof m === 'object' ? m.id : parseInt(String(m).split('/').pop() || '0')
-        if (mediaId) {
-          try { await this.deleteMedia(token, mediaId) } catch (e) {
-            console.warn('[deleteWithCleanup] Media delete failed:', mediaId)
+        if (mediaId && !isNaN(mediaId)) {
+          try { 
+            await this.deleteMedia(token, mediaId) 
+          } catch (e) {
+            console.warn('[deleteWithCleanup] Media delete failed:', mediaId, e)
           }
         }
       }
@@ -90,17 +92,28 @@ export const publicationService = {
     if (fullPub.comments && fullPub.comments.length > 0) {
       for (const c of fullPub.comments) {
         const commentId = typeof c === 'object' ? c.id : parseInt(String(c).split('/').pop() || '0')
-        if (commentId) {
-          try { await this.deleteComment(token, commentId) } catch (e) {
-            console.warn('[deleteWithCleanup] Comment delete failed:', commentId)
-          }
+        if (commentId && !isNaN(commentId)) {
+        try { 
+            await this.deleteComment(token, commentId) 
+        } catch (e) {
+            console.warn('[deleteWithCleanup] Comment delete failed:', commentId, e)
         }
+      }
       }
     }
 
-    // 4. Les réactions ne peuvent PAS être supprimées (bug serveur DELETE → 500)
+    // 4. Tenter de supprimer les réactions (même si le serveur a des bugs parfois)
     if (fullPub.reactions && fullPub.reactions.length > 0) {
-      console.warn(`[deleteWithCleanup] Pub ${pub.id} has ${fullPub.reactions.length} reactions that cannot be deleted (server bug). Delete may fail.`)
+      for (const r of fullPub.reactions) {
+        const reactionId = typeof r === 'object' ? r.id : parseInt(String(r).split('/').pop() || '0')
+        if (reactionId) {
+          try { 
+            await this.deleteReaction(token, reactionId) 
+          } catch (e) {
+            console.warn('[deleteWithCleanup] Reaction delete failed, continuing anyway:', reactionId)
+          }
+        }
+      }
     }
 
     // 5. Supprimer la publication

@@ -48,20 +48,23 @@
               class="lumine-post"
               @click="viewPost(pub)"
             >
-              <!-- IMAGE OR TEXT PLACEHOLDER -->
-              <img 
-                v-if="hasImage(pub)" 
-                :src="getPostImageUrl(pub)" 
-                class="post-image" 
-                alt="Post content"
-                loading="lazy"
-              />
-              <div v-else class="post-text-placeholder">
-                 <p class="post-text-title">{{ pub.title }}</p>
-                 <p class="post-text-content">{{ pub.body }}</p>
+              <!-- IMAGE -->
+              <div v-if="hasImage(pub)" class="post-image-container">
+                 <img 
+                   :src="getPostImageUrl(pub)" 
+                   class="post-image" 
+                   alt="Post content"
+                   loading="lazy"
+                 />
               </div>
 
-              <!-- HOVER OVERLAY -->
+              <!-- TEXT CONTENT -->
+              <div class="post-content">
+                 <h3 class="post-mini-title">{{ pub.title }}</h3>
+                 <p class="post-mini-body">{{ pub.body }}</p>
+              </div>
+
+              <!-- HOVER OVERLAY (keep functionality but maybe adjust style later if needed) -->
               <div class="post-overlay">
                  <div class="overlay-stat">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -123,7 +126,7 @@
           </div>
         </div>
 
-        <button class="create-channel-btn" @click="createChannel">
+        <button class="create-channel-btn" @click="openChannelModal">
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
            Nouveau salon
         </button>
@@ -175,6 +178,53 @@
              <button @click="removeImage" class="btn-text danger remove-img-btn">Supprimer l'image</button>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CHANNEL -->
+    <div v-if="showChannelModal" class="modal-overlay" @click.self="showChannelModal = false">
+      <div class="modal-card" style="max-width: 400px; height: auto;">
+        
+        <div class="modal-header">
+          <button @click="showChannelModal = false" class="btn-text cancel-btn">Annuler</button>
+          <span class="modal-title">Nouveau salon</span>
+          <button @click="confirmCreateChannel" class="btn-text publish-btn" :disabled="creatingChannel || !newChannelName.trim()">
+            {{ creatingChannel ? '...' : 'Créer' }}
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p style="margin-bottom: 12px; font-size: 14px; color: #6b7280;">
+             Donnez un nom à votre nouveau salon de discussion.
+          </p>
+          <input 
+            v-model="newChannelName" 
+            type="text" 
+            class="modal-input" 
+            placeholder="Nom du salon (ex: #mode)" 
+            @keyup.enter="confirmCreateChannel"
+            autoFocus
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DELETE CONFIRMATION -->
+    <div v-if="showDeletePostModal" class="modal-overlay" @click.self="cancelDeletePost">
+      <div class="modal-card" style="max-width: 400px; height: auto;">
+        <div class="modal-header">
+          <span class="modal-title" style="margin: 0 auto; color: #ef4444;">Supprimer ?</span>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+          <p style="color: #4b5563; font-size: 15px;">
+            Voulez-vous vraiment supprimer cette publication ?
+            <br><span style="font-size: 13px; color: #9ca3af;">Cette action est irréversible.</span>
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center; margin-top: 10px;">
+             <button @click="cancelDeletePost" class="btn-text" style="background: #f3f4f6; padding: 10px 20px; border-radius: 6px;">Annuler</button>
+             <button @click="executeDeletePost" class="btn-text danger" style="background: #fee2e2; padding: 10px 20px; border-radius: 6px;">Supprimer</button>
+          </div>
         </div>
       </div>
     </div>
@@ -300,6 +350,11 @@ const currentChannelId = ref<number | null>(null)
 
 // Formulaire
 const showModal = ref(false)
+const showChannelModal = ref(false) // New modal state
+const showDeletePostModal = ref(false) // Delete confirm modal
+const postToDelete = ref<Publication | null>(null) // Post to delete
+const newChannelName = ref('')      // New channel name state
+const creatingChannel = ref(false)  // New loading state
 const newPostContent = ref('')
 const newPostTitle = ref('')
 const publishing = ref(false)
@@ -430,22 +485,33 @@ async function changeChannel(channelObj: Channel) {
   }
 }
 
-// 3. CRÉATION SALON
-async function createChannel() {
-  if (!userStore.token) return
-  
-  const name = prompt("Nom du nouveau salon :")
-  if (!name) return
+// 3. CRÉATION SALON (Ouvrir modale)
+function openChannelModal() {
+  showChannelModal.value = true
+  newChannelName.value = ''
+}
+
+// 3B. CONFIRMER CRÉATION SALON
+async function confirmCreateChannel() {
+  if (!userStore.token || !newChannelName.value.trim()) return
+
+  creatingChannel.value = true
   try {
-    await channelService.create(userStore.token, name)
+    await channelService.create(userStore.token, newChannelName.value)
+    
+    // Recharger
+    showChannelModal.value = false
     await fetchChannelsList()
-    showToast(`Salon "${name}" créé`, 'success')
+    showToast(`Salon "${newChannelName.value}" créé`, 'success')
+    
   } catch (e: any) { 
     showToast(e.message, 'error') 
+  } finally {
+    creatingChannel.value = false
   }
 }
 
-// 3B. MENU & SUPPRESSION SALON
+// 3C. MENU & SUPPRESSION SALON
 function toggleMenu(channelId: number) {
   if (openMenuId.value === channelId) {
     openMenuId.value = null
@@ -477,15 +543,24 @@ async function deleteChannel(channel: Channel) {
   }
 }
 
-async function confirmDeletePost(pub: Publication) {
-  if (!confirm("Voulez-vous vraiment supprimer cette publication ?")) return
+// Ouvre la modale de confirmation
+function confirmDeletePost(pub: Publication) {
+  postToDelete.value = pub
+  showDeletePostModal.value = true
+}
 
+// Effectue la suppression réelle
+async function executeDeletePost() {
+  if (!userStore.token || !postToDelete.value) return
+
+  const pub = postToDelete.value
+  
   try {
-    await publicationService.deleteWithCleanup(userStore.token!, pub)
+    await publicationService.deleteWithCleanup(userStore.token, pub)
     
     showToast('Publication supprimée', 'success')
 
-    // Si c'est le post ouvert, on ferme la modale
+    // Si c'est le post ouvert, on ferme la modale détails
     if (selectedPost.value && selectedPost.value.id === pub.id) {
       closePostModal()
     }
@@ -497,7 +572,16 @@ async function confirmDeletePost(pub: Publication) {
   } catch (e: any) {
     console.error(e)
     showToast("Impossible de supprimer cette publication", 'error')
+  } finally {
+    showDeletePostModal.value = false
+    postToDelete.value = null
   }
+}
+
+// Annule la suppression
+function cancelDeletePost() {
+  showDeletePostModal.value = false
+  postToDelete.value = null
 }
 
 
@@ -1164,26 +1248,30 @@ onUnmounted(() => {
 
 .toast-item {
   padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  color: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  color: #ffffff; /* White text */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
   max-width: 360px;
-  backdrop-filter: blur(12px);
+  background-color: #1f2937; /* Dark gray background */
+  border: 1px solid #374151; /* Subtle border */
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .toast-item.success {
-  background: linear-gradient(135deg, #10b981, #059669);
+  border-left: 4px solid #10b981; /* Green accent */
 }
 
 .toast-item.error {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-left: 4px solid #ef4444; /* Red accent */
 }
 
 .toast-item.info {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-left: 4px solid #3b82f6; /* Blue accent */
 }
 
 /* Toast transitions */

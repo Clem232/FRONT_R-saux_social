@@ -27,6 +27,10 @@
       <h1 class="logo">Lumi.</h1>
       <h2 class="auth-title">{{ isLogin ? 'Connexion' : 'Inscription' }}</h2>
 
+      <p class="auth-description">
+        Rejoignez notre communauté créative ! Profitez de partager vos idées de mode, découvrez les dernières tendances et connectez-vous avec des passionnés.
+      </p>
+
       <form @submit.prevent="submit" class="auth-form">
         
         <div v-if="!isLogin" class="form-group">
@@ -275,9 +279,18 @@ async function submit() {
   font-size: 16px;
   font-weight: 600;
   color: #6b7280;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   font-family: 'Space Grotesk', sans-serif;
   letter-spacing: -0.5px;
+}
+
+.auth-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 30px;
+  text-align: center;
+  line-height: 1.5;
+  max-width: 90%;
 }
 
 .auth-form {

@@ -90,20 +90,29 @@
 
 .lumine-post {
   position: relative;
-  aspect-ratio: 1 / 1;
+  /* aspect-ratio removed to allow content to flow naturally */
   background-color: #ffffff;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-  border: 1px solid #e2e4e7;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 0.5px solid #818181; /* Très fine border */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   border-radius: 6px;
+  display: flex;
+  flex-direction: column;
 }
 
 .lumine-post:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
-  border-color: #c4c8ce;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: #e5e7eb;
+}
+
+.post-image-container {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Keep image square or 4/3 */
+  overflow: hidden;
+  background-color: #f9fafb;
 }
 
 .post-image {
@@ -113,56 +122,60 @@
   display: block;
 }
 
-.post-text-placeholder {
-  width: 100%;
-  height: 100%;
+/* New styles for always-visible text content */
+.post-content {
+    border-top: 0.5px solid #818181; /* Très fine border */
+
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  text-align: center;
-  background-color: #fafafa;
-  color: #111827;
+  gap: 4px;
 }
 
-.post-text-title {
+.post-mini-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
+  font-size: 14px; /* Un peu plus petit */
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #9ca3af;
-  margin-bottom: 8px;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
 }
 
-.post-text-content {
+.post-mini-body {
   font-family: 'Afacad', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.6;
-  overflow: hidden;
+  font-size: 13px; /* Un peu plus petit */
+  color: #6b7280;
+  margin: 0;
   display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
   -webkit-box-orient: vertical;
-  color: #374151;
+  overflow: hidden;
+  line-height: 1.4;
 }
 
+/* Adjust overlay to cover only image or disappear? 
+   If user wants text integrated, maybe overlay only on image?
+   Let's make overlay cover the whole card but simpler, or just the image. 
+   Actually, users usually expect overlay actions on the image. 
+   Let's position it absolute but maybe just over the image? 
+   Or cover everything. Let's cover everything for consistency with previous 
+   behavior but make it less intrusive if needed. */
 .post-overlay {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(17, 24, 39, 0.45);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
   color: white;
   opacity: 0;
-  transition: opacity 0.18s ease;
-  font-weight: 600;
-  font-family: 'Space Grotesk', sans-serif;
-  backdrop-filter: blur(1px);
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(2px);
+  border-radius: 6px;
 }
+
 
 .lumine-post:hover .post-overlay {
   opacity: 1;
@@ -319,10 +332,16 @@
 }
 .loading-spinner {
     border: 3px solid rgba(0,0,0,0.1);
+    border-top: 3px solid #111827;
     width: 24px; height: 24px;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* --- MODAL --- */
