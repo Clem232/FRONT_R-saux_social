@@ -1,21 +1,5 @@
-import type { Publication, Media, Comment } from '@/types'
-import { getApiUrl, getAuthHeaders, getMediaUrl, API_CONFIG } from './api.config'
-
-/**
- * Convertir un fichier en base64
- */
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => {
-      const result = reader.result as string
-      const base64 = result.split(',')[1] || ''
-      resolve(base64)
-    }
-    reader.onerror = (error) => reject(error)
-  })
-}
+import type { Publication, Media, Comment, ApiCollection } from '@/types'
+import { getApiUrl, getAuthHeaders, API_CONFIG } from './api.config'
 
 /**
  * Service pour gérer les publications
@@ -199,27 +183,12 @@ export const publicationService = {
   // ========== MÉDIAS ==========
 
   /**
-   * Uploader un média pour une publication
+   * Uploader un média pour une publication (FormData uniquement)
    */
   async uploadMedia(token: string, file: File, publicationIRI: string): Promise<Media> {
-    try {
-      const fileBase64 = await fileToBase64(file)
-      const res = await fetch(getApiUrl('/media'), {
-        method: 'POST',
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({
-          originalName: file.name,
-          publication: publicationIRI,
-          file: fileBase64
-        })
-      })
-      if (res.ok) return await res.json()
-    } catch { /* Fallback to multipart */ }
-
     const formData = new FormData()
     formData.append('file', file)
     formData.append('publication', publicationIRI)
-    formData.append('originalName', file.name)
 
     const res = await fetch(getApiUrl('/media'), {
       method: 'POST',
@@ -227,8 +196,58 @@ export const publicationService = {
       body: formData
     })
 
-    if (!res.ok) throw new Error("Erreur lors de l'upload du média")
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      console.error('[uploadMedia] Error:', res.status, errText)
+      throw new Error("Erreur lors de l'upload du média")
+    }
     return await res.json()
+  },
+
+  /**
+   * Récupérer tous les médias du workspace
+   */
+  async getAllMedia(token: string): Promise<Media[]> {
+    const res = await fetch(getApiUrl('/media'), {
+      headers: getAuthHeaders(token)
+    })
+    if (!res.ok) {
+      console.warn('[getAllMedia] Error:', res.status)
+      return []
+    }
+    const data: ApiCollection<Media> = await res.json()
+    return data['hydra:member'] || data.member || []
+  },
+
+  /**
+   * Hydrater les publications avec leurs médias
+   * (récupère tous les médias et les associe par publication IRI/ID)
+   */
+  async hydratePublicationsMedia(token: string, publications: Publication[]): Promise<void> {
+    if (publications.length === 0) return
+    
+    try {
+      const allMedias = await this.getAllMedia(token)
+      if (allMedias.length === 0) return
+
+      for (const pub of publications) {
+        const pubId = String(pub.id || pub['@id']?.split('/').pop())
+
+        const mediasForPub = allMedias.filter(m => {
+          if (!m.publication) return false
+          const p = m.publication
+          return (typeof p === 'string' && p.includes(pubId)) ||
+                 (typeof p === 'object' && p['@id']?.includes(pubId))
+        })
+
+        if (mediasForPub.length > 0) {
+          pub.medias = mediasForPub
+        }
+      }
+      console.log(`[hydrateMedia] ${allMedias.length} médias trouvés, associés aux publications`)
+    } catch (e) {
+      console.warn('[hydrateMedia] Erreur hydratation médias', e)
+    }
   },
 
   /**
@@ -247,17 +266,31 @@ export const publicationService = {
   // ========== UTILITAIRES ==========
 
   hasImage(pub: Publication): boolean {
-    return pub.medias && pub.medias.length > 0
+    return !!(pub.medias && pub.medias.length > 0)
   },
 
   getImageUrl(pub: Publication): string | null {
-    if (pub.medias && pub.medias.length > 0) {
-      const media = pub.medias[0]
-      if (!media) return null
-      if (typeof media === 'string') return getMediaUrl(media)
-      if (media.contentUrl) return getMediaUrl(media.contentUrl)
+    const media = pub.medias?.[0]
+    if (!media) return null
+
+    // Si c'est juste un IRI string, pas d'image affichable
+    if (typeof media === 'string') return null
+
+    // Utiliser path en priorité (propriété retournée par l'API)
+    let imagePath = media.path || media.contentUrl
+    if (!imagePath) return null
+
+    // URL absolue → retourner directement
+    if (imagePath.startsWith('http')) return imagePath
+
+    // Construire l'URL: BASE_URL + /uploads/SLUG/filename
+    if (!imagePath.includes('/')) {
+      imagePath = `/uploads/${API_CONFIG.SLUG}/${imagePath}`
+    } else if (!imagePath.startsWith('/')) {
+      imagePath = '/' + imagePath
     }
-    return null
+
+    return `${API_CONFIG.BASE_URL}${imagePath}`
   },
 
   validateFile(file: File): { valid: boolean; error?: string } {

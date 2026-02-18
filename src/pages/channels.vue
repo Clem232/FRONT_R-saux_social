@@ -37,7 +37,7 @@
           
           <div class="feed-header-info">
              <h2 class="current-channel-title">#{{ currentChannelData.name }}</h2>
-             <p style="color: grey">{{ currentChannelData.publications?.length || 0 }} publications</p>
+             <span class="pub-count-badge">{{ currentChannelData.publications?.length || 0 }} publications</span>
           </div>
 
           <div v-if="currentChannelData.publications && currentChannelData.publications.length > 0" class="feed-grid">
@@ -57,18 +57,23 @@
                 loading="lazy"
               />
               <div v-else class="post-text-placeholder">
+                 <p class="post-text-title">{{ pub.title }}</p>
                  <p class="post-text-content">{{ pub.body }}</p>
               </div>
 
               <!-- HOVER OVERLAY -->
               <div class="post-overlay">
                  <div class="overlay-stat">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    <span>0</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <span>{{ pub.reactions?.length || 0 }}</span>
+                 </div>
+                 <div class="overlay-stat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>{{ pub.comments?.length || 0 }}</span>
                  </div>
                  
                  <button class="delete-post-btn" @click.stop="confirmDeletePost(pub)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                  </button>
               </div>
 
@@ -137,10 +142,10 @@
       <div class="modal-card">
         
         <div class="modal-header">
-          <button @click="closeModal" class="btn-text">Annuler</button>
-          <span style="font-weight:600">Nouveau post</span>
-          <button @click="publishPost" class="btn-text" style="color: #0095f6" :disabled="publishing">
-            {{ publishing ? '...' : 'Partager' }}
+          <button @click="closeModal" class="btn-text cancel-btn">Annuler</button>
+          <span class="modal-title">Nouvelle publication</span>
+          <button @click="publishPost" class="btn-text publish-btn" :disabled="publishing">
+            {{ publishing ? 'Publication...' : 'Publier' }}
           </button>
         </div>
 
@@ -148,28 +153,26 @@
           <input 
             v-model="newPostTitle" 
             type="text" 
-            class="modal-input" 
-            placeholder="Titre..." 
-            style="font-weight:bold; font-size:16px;"
+            class="modal-input title-input" 
+            placeholder="Titre de la publication" 
           />
           
           <textarea 
             v-model="newPostContent" 
-            class="modal-input" 
-            placeholder="Légende..."
-            rows="3"
-            style="border:none; margin-bottom:0;"
+            class="modal-input content-input" 
+            placeholder="Écrivez votre message..."
+            rows="5"
           ></textarea>
 
           <label for="file-upload" class="file-upload-label">
-             <span v-if="!selectedFile">📷 Ajouter une photo</span>
-             <span v-else>Changer la photo</span>
+             <span v-if="!selectedFile">Ajouter une image</span>
+             <span v-else>Changer l'image</span>
           </label>
           <input id="file-upload" type="file" @change="handleFileSelect" accept="image/*" style="display:none" />
           
-          <div v-if="previewImage">
+          <div v-if="previewImage" class="preview-container">
              <img :src="previewImage" class="preview-img" />
-             <button @click="removeImage" class="btn-text danger" style="width:100%">Supprimer l'image</button>
+             <button @click="removeImage" class="btn-text danger remove-img-btn">Supprimer l'image</button>
           </div>
 
         </div>
@@ -189,7 +192,6 @@
              class="detail-main-img" 
            />
            <div v-else class="no-image-placeholder">
-             <span style="font-size: 40px;">📝</span>
              <p>Aucune image</p>
            </div>
         </div>
@@ -265,6 +267,17 @@
       </div>
     </div>
 
+    <!-- BACKGROUND TEXT DECORATION -->
+    <div class="background-text-layer">
+        <span class="bg-word w1">FASHION</span>
+        <span class="bg-word w2">MODE</span>
+        <span class="bg-word w3">VOGUE</span>
+        <span class="bg-word w4">STYLE</span>
+        <span class="bg-word w5">CHIC</span>
+        <span class="bg-word w6">TREND</span>
+        <span class="bg-word w7">ART</span>
+    </div>
+
   </div>
 </template>
 
@@ -272,9 +285,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { channelService, publicationService, API_CONFIG, getMediaUrl } from '@/services'
+import { channelService, publicationService, API_CONFIG } from '@/services'
 import type { Channel, Publication } from '@/types'
 import '@/assets/instagram.css'
+import '@/assets/instagram-bg.css'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -334,6 +348,9 @@ function startPolling() {
           currentObj.id,
           currentObj.slug
         )
+        // Hydrater les médias pour que les images restent affichées
+        await publicationService.hydratePublicationsMedia(userStore.token, pubs)
+        
         if (currentChannelData.value && currentChannelId.value === currentObj.id) {
           const oldCount = currentChannelData.value.publications?.length || 0
           currentChannelData.value.publications = pubs
@@ -397,8 +414,12 @@ async function changeChannel(channelObj: Channel) {
     const pubs = await channelService.getPublications(
       userStore.token, 
       channelObj.id,
-      channelObj.slug // Passer le slug pour un meilleur filtrage
+      channelObj.slug
     )
+    
+    // Hydrater les publications avec les médias (force brute)
+    await publicationService.hydratePublicationsMedia(userStore.token, pubs)
+    
     currentChannelData.value.publications = pubs
     
   } catch (e) {
@@ -568,14 +589,19 @@ function getPostImageUrl(pub: Publication): string | undefined {
 
 async function viewPost(pub: Publication) {
   if (!userStore.token) return
-  selectedPost.value = pub
+  // Garder la publication hydratée (avec medias) de la grille
+  selectedPost.value = { ...pub }
   showPostModal.value = true
   
   loadingComments.value = true
   try {
-    // Utiliser getDetail pour obtenir les comments et reactions embarqués
+    // Charger les détails pour comments et reactions
     const fullPub = await publicationService.getDetail(userStore.token, pub.id)
-    selectedPost.value = fullPub
+    // Conserver les medias hydratés de la grille (l'API retourne des IRIs bruts)
+    selectedPost.value = {
+      ...fullPub,
+      medias: pub.medias && pub.medias.length > 0 ? pub.medias : fullPub.medias
+    }
     selectedPostComments.value = fullPub.comments || []
     selectedPostReactions.value = fullPub.reactions || []
   } catch (e) {
@@ -1057,41 +1083,63 @@ onUnmounted(() => {
 .add-comment-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  border-top: 1px solid #efefef;
-  padding-top: 10px;
+  gap: 12px;
+  border-top: 1px solid #e5e7eb;
+  padding: 16px;
+  background: #f9fafb;
 }
 
 .add-comment-box input {
   flex: 1;
-  background: none;
-  border: none;
-  color: #262626;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  padding: 10px 16px;
+  color: #111827;
+  font-family: 'Afacad', sans-serif;
   font-size: 14px;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.add-comment-box input:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 1px #111827;
 }
 
 .add-comment-box input::placeholder {
-  color: #8e8e8e;
+  color: #9ca3af;
 }
 
 .post-btn {
-  background: none;
+  background-color: #111827;
+  color: #ffffff;
   border: none;
-  color: #0095f6;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background-color 0.2s, transform 0.1s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .post-btn:hover {
-  opacity: 0.7;
+  background-color: #1f2937;
+  transform: translateY(-1px);
+}
+
+.post-btn:active {
+  transform: translateY(0);
 }
 
 .post-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .loading-spinner.small {

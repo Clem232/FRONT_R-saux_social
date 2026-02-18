@@ -4,8 +4,10 @@ export interface Media {
   '@id': string
   '@type': string
   id: number
-  contentUrl: string
-  originalName: string
+  contentUrl?: string
+  originalName?: string
+  path?: string
+  publication?: string | { '@id': string }
 }
 
 export interface Comment {
