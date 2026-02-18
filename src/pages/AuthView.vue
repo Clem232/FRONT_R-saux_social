@@ -1,6 +1,28 @@
 <template>
   <div class="auth-wrapper">
     
+    <!-- Carrousel d'images à gauche -->
+    <div class="auth-images">
+      <div class="slideshow">
+        <img 
+          v-for="(image, index) in images" 
+          :key="index"
+          :src="image" 
+          :class="{ active: currentImage === index }"
+          alt="Connexion illustration"
+        />
+      </div>
+      <div class="slideshow-dots">
+        <span 
+          v-for="(_, index) in images" 
+          :key="index" 
+          :class="{ active: currentImage === index }"
+          @click="currentImage = index"
+        ></span>
+      </div>
+    </div>
+
+    <!-- Formulaire à droite -->
     <div class="auth-card">
       <h1 class="logo">Lumine.</h1>
       <h2 class="auth-title">{{ isLogin ? 'Connexion' : 'Inscription' }}</h2>
@@ -55,12 +77,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user' 
 
+// Images
+import connexion from '@/assets/connexion.png'
+import connexion1 from '@/assets/connexion.1.png'
+import connexion2 from '@/assets/connexion.2.png'
+
 const router = useRouter()
 const userStore = useUserStore()
+
+// --- IMAGES SLIDESHOW ---
+const images = [connexion, connexion2, connexion1]
+const currentImage = ref(0)
+let slideInterval: number | null = null
+
+onMounted(() => {
+  slideInterval = setInterval(() => {
+    currentImage.value = (currentImage.value + 1) % images.length
+  }, 4000)
+})
+
+onUnmounted(() => {
+  if (slideInterval) clearInterval(slideInterval)
+})
 
 // --- ETATS ---
 const isLogin = ref(true)
@@ -146,24 +188,77 @@ async function submit() {
 .auth-wrapper {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f4f4f5;
+  align-items: stretch;
+  background-color: #ffffff;
   font-family: 'Afacad', sans-serif;
   line-height: 1.6;
 }
 
-.auth-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  padding: 40px;
+/* Carrousel d'images à gauche */
+.auth-images {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f4f5;
+}
+
+.slideshow {
+  position: relative;
   width: 100%;
-  max-width: 380px;
+  height: 100%;
+}
+
+.slideshow img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.slideshow img.active {
+  opacity: 1;
+}
+
+.slideshow-dots {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.slideshow-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.slideshow-dots span.active {
+  background-color: #ffffff;
+}
+
+/* Formulaire à droite */
+.auth-card {
+  flex: 1;
+  max-width: 500px;
+  background: #ffffff;
+  padding: 40px 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  justify-content: center;
 }
 
 .logo {
@@ -285,5 +380,17 @@ async function submit() {
   margin-top: 15px;
   text-align: center;
   font-family: 'Afacad', sans-serif;
+}
+
+/* Responsive - cacher les images sur mobile */
+@media (max-width: 768px) {
+  .auth-images {
+    display: none;
+  }
+  
+  .auth-card {
+    max-width: 100%;
+    padding: 40px 20px;
+  }
 }
 </style>
