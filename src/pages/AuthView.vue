@@ -86,15 +86,17 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user' 
 
 // Images
-import connexion from '@/assets/connexion.png'
-import connexion1 from '@/assets/connexion.1.png'
-import connexion2 from '@/assets/connexion.2.png'
+import img3 from '@/assets/europeana-9oMfRY9UuMo-unsplash.jpg'
+import img2 from '@/assets/europeana-Md_krY078OM-unsplash.jpg'
+import img1 from '@/assets/charlota-blunarova-r5xHI_H44aM-unsplash (1).jpg'
+import img4 from '@/assets/europeana-SxKoo0k6fJs-unsplash (1).jpg'
+import img5 from '@/assets/gio-gix-1RNr1pLBeR4-unsplash (1).jpg'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 // --- IMAGES SLIDESHOW ---
-const images = [connexion, connexion2, connexion1]
+const images = [img1, img2, img3, img4, img5]
 const currentImage = ref(0)
 let slideInterval: number | null = null
 
@@ -262,7 +264,7 @@ async function submit() {
   padding: 40px 60px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 
@@ -273,25 +275,28 @@ async function submit() {
   margin-top: 0;
   font-weight: 700;
   letter-spacing: -2px;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary, #414141);
+  align-self: center;
 }
 
 .auth-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-muted, #6b7280);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-family: 'Space Grotesk', sans-serif;
   letter-spacing: -0.5px;
+  align-self: center;
 }
 
 .auth-description {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-muted, #6b7280);
-  margin-bottom: 30px;
-  text-align: center;
+  margin-bottom: 24px;
+  text-align: left;
   line-height: 1.5;
-  max-width: 90%;
+  max-width: 100%;
+  width: 100%;
 }
 
 .auth-form {
@@ -310,12 +315,12 @@ async function submit() {
   padding: 14px 12px;
   background: var(--bg-input-alt, #f4f4f5);
   border: 1px solid var(--border-light, #e5e7eb);
-  border-radius: 6px;
+  border-radius: 3px;
   font-size: 15px;
   outline: none;
   font-family: 'Afacad', sans-serif;
   transition: all 0.2s;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary, #414141);
 }
 
 .auth-input::placeholder {
@@ -323,16 +328,16 @@ async function submit() {
 }
 
 .auth-input:focus {
-  border-color: var(--text-primary, #111827);
+  border-color: var(--text-primary, #414141);
   background: var(--bg-input, #ffffff);
 }
 
 .auth-btn {
   margin-top: 10px;
-  background-color: #111827;
+  background-color: #414141;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 3px;
   padding: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -343,7 +348,7 @@ async function submit() {
 }
 
 .auth-btn:hover {
-  background-color: #1f2937;
+  background-color: #555555;
 }
 
 .auth-btn:disabled {
@@ -375,17 +380,18 @@ async function submit() {
 .toggle-link {
   background: none;
   border: none;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary, #414141);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   font-family: 'Afacad', sans-serif;
   text-decoration: underline;
   padding: 8px;
+  align-self: center;
 }
 
 .toggle-link:hover {
-  color: var(--text-secondary, #374151);
+  color: var(--text-secondary, #666666);
 }
 
 .error-msg {

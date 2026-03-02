@@ -105,7 +105,7 @@ export const publicationService = {
     // 4. Tenter de supprimer les réactions (même si le serveur a des bugs parfois)
     if (fullPub.reactions && fullPub.reactions.length > 0) {
       for (const r of fullPub.reactions) {
-        const reactionId = typeof r === 'object' ? r.id : parseInt(String(r).split('/').pop() || '0')
+        const reactionId = typeof r === 'object' ? (r as any).id : parseInt(String(r).split('/').pop() || '0')
         if (reactionId) {
           try { 
             await this.deleteReaction(token, reactionId) 

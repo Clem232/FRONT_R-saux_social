@@ -15,6 +15,7 @@
       </transition-group>
     </div>
     
+    <!-- NAV -->
     <nav class="lumine-nav">
       <div class="nav-content">
         <h1 class="lumine-logo">Lumi.</h1>
@@ -23,14 +24,39 @@
             {{ themeStore.isDark ? 'Light mode' : 'Dark mode' }}
           </button>
           <button @click="openModal" class="btn-primary">+ Créer</button>
-          <button @click="logout" class="btn-text danger">Déconnexion</button>
+          
+          <!-- PROFIL DROPDOWN -->
+          <div class="nav-profile" @click.stop>
+            <button class="nav-profile-btn" @click="showProfileMenu = !showProfileMenu">
+              <div class="nav-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
+              <svg class="chevron-icon" :class="{ open: showProfileMenu }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div v-if="showProfileMenu" class="profile-dropdown">
+              <div class="profile-dropdown-header">
+                <div class="profile-avatar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="profile-details">
+                  <span class="profile-name">{{ userStore.user?.email || 'Utilisateur' }}</span>
+                  <span class="profile-role">Membre</span>
+                </div>
+              </div>
+              <div class="profile-dropdown-divider"></div>
+              <button @click="logout" class="profile-dropdown-item danger">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Déconnexion
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
 
     <div class="main-layout">
       
-      <!-- FEED SECTION (LEFT) -->
+      <!-- FEED SECTION -->
       <main class="feed-content">
         
         <div v-if="loadingFeed" class="loading-spinner"></div>
@@ -39,23 +65,62 @@
         <div v-if="currentChannelData && !loadingFeed">
           
           <div class="feed-header-info">
-             <div class="channel-title-wrapper">
-               <h2 class="current-channel-title">#{{ currentChannelData.name }}</h2>
-               <div class="info-tooltip-container">
-                 <svg class="info-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" fill-rule="evenodd" d="M10 3a7 7 0 100 14 7 7 0 000-14zm-9 7a9 9 0 1118 0 9 9 0 01-18 0zm10.01 4a1 1 0 01-1 1H10a1 1 0 110-2h.01a1 1 0 011 1zM11 6a1 1 0 10-2 0v5a1 1 0 102 0V6z"></path> </g></svg>
-                 <div class="tooltip-text">Partagez ici vos idées de mode à petit budget et vos créations DIY !</div>
+             <div class="channel-title-row">
+               <div class="channel-title-wrapper">
+                 <h2 class="current-channel-title">#{{ currentChannelData.name }}</h2>
+                 <span class="pub-count-badge">{{ currentChannelData.publications?.length || 0 }}</span>
+                 <div class="info-tooltip-container">
+                   <svg class="info-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" fill-rule="evenodd" d="M10 3a7 7 0 100 14 7 7 0 000-14zm-9 7a9 9 0 1118 0 9 9 0 01-18 0zm10.01 4a1 1 0 01-1 1H10a1 1 0 110-2h.01a1 1 0 011 1zM11 6a1 1 0 10-2 0v5a1 1 0 102 0V6z"></path> </g></svg>
+                   <div class="tooltip-text">Partagez ici vos idées de mode à petit budget et vos créations DIY !</div>
+                 </div>
+               </div>
+               <div class="view-toggle">
+                 <button class="view-toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="Vue grille compacte">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+                 </button>
+                 <button class="view-toggle-btn" :class="{ active: viewMode === 'normal' }" @click="viewMode = 'normal'" title="Vue normale">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="1"></rect><rect x="3" y="14" width="18" height="7" rx="1"></rect></svg>
+                 </button>
                </div>
              </div>
              <p class="channel-description">Découvrez les dernières tendances, astuces créatives et bons plans de la communauté.</p>
-             <span class="pub-count-badge">{{ currentChannelData.publications?.length || 0 }} publications</span>
+             
+             <!-- Filtres -->
+             <div class="feed-filters">
+               <button 
+                 class="filter-btn" 
+                 :class="{ active: sortMode === 'recent' }" 
+                 @click="sortMode = 'recent'"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                 Récent
+               </button>
+               <button 
+                 class="filter-btn" 
+                 :class="{ active: sortMode === 'oldest' }" 
+                 @click="sortMode = 'oldest'"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                 Plus ancien
+               </button>
+               <button 
+                 class="filter-btn" 
+                 :class="{ active: sortMode === 'trending' }" 
+                 @click="sortMode = 'trending'"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                 Tendances
+               </button>
+             </div>
           </div>
 
-          <div v-if="currentChannelData.publications && currentChannelData.publications.length > 0" class="feed-grid">
+          <div v-if="sortedPublications.length > 0" class="feed-grid" :class="{ 'compact-grid': viewMode === 'grid' }">
             
             <article 
-              v-for="pub in currentChannelData.publications" 
+              v-for="pub in sortedPublications" 
               :key="pub['@id']" 
               class="lumine-post"
+              :class="{ 'compact-post': viewMode === 'grid' }"
               @click="viewPost(pub)"
             >
               <!-- IMAGE -->
@@ -66,15 +131,25 @@
                    alt="Post content"
                    loading="lazy"
                  />
+                 <!-- COLOR PALETTE (inside image) -->
+                 <div class="post-palette">
+                   <span 
+                     v-for="(color, i) in getPostPalette(pub.id)" 
+                     :key="i" 
+                     class="palette-dot" 
+                     :style="{ backgroundColor: color }"
+                     :title="color"
+                   ></span>
+                 </div>
               </div>
 
-              <!-- TEXT CONTENT -->
-              <div class="post-content">
+              <!-- TEXT CONTENT (hidden in grid mode) -->
+              <div v-if="viewMode === 'normal'" class="post-content">
                  <h3 class="post-mini-title">{{ pub.title }}</h3>
                  <p class="post-mini-body">{{ pub.body }}</p>
               </div>
 
-              <!-- HOVER OVERLAY (keep functionality but maybe adjust style later if needed) -->
+              <!-- HOVER OVERLAY -->
               <div class="post-overlay">
                  <div class="overlay-stat">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -102,14 +177,11 @@
         </div>
       </main>
 
-      <!-- SIDEBAR (RIGHT) -->
+      <!-- SIDEBAR CHAÎNES (RIGHT) -->
       <aside class="lumine-sidebar">
-        
         <div class="sidebar-header">
-           <div style="display: flex; align-items: center; gap: 10px;">
-             <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-             <span>CHAÎNES</span>
-           </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          <span>CHAÎNES</span>
         </div>
 
         <div class="channel-list">
@@ -121,7 +193,7 @@
              @click="changeChannel(channel)"
           >
              <div class="channel-info">
-               <svg class="hash-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+               <span class="channel-hash">#</span>
                <span class="channel-name">{{ channel.name }}</span>
              </div>
              <div class="channel-menu" @click.stop>
@@ -142,7 +214,6 @@
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
            Nouveau salon
         </button>
-
       </aside>
 
     </div>
@@ -234,8 +305,8 @@
             <br><span style="font-size: 13px; color: var(--text-subtle);">Cette action est irréversible.</span>
           </p>
           <div style="display: flex; gap: 12px; justify-content: center; margin-top: 10px;">
-             <button @click="cancelDeletePost" class="btn-text" style="background: var(--bg-hover); padding: 10px 20px; border-radius: 6px;">Annuler</button>
-             <button @click="executeDeletePost" class="btn-text danger" style="background: var(--bg-hover); padding: 10px 20px; border-radius: 6px;">Supprimer</button>
+             <button @click="cancelDeletePost" class="btn-text" style="background: var(--bg-hover); padding: 10px 20px; border-radius: 3px;">Annuler</button>
+             <button @click="executeDeletePost" class="btn-text danger" style="background: var(--bg-hover); padding: 10px 20px; border-radius: 3px;">Supprimer</button>
           </div>
         </div>
       </div>
@@ -267,9 +338,6 @@
                <div class="avatar-circle">{{ selectedPost.id.toString().substring(0,2) }}</div>
                <span class="author-name">Publication #{{ selectedPost.id }}</span>
              </div>
-             <button @click="confirmDeletePost(selectedPost)" class="btn-text danger" title="Supprimer">
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-             </button>
           </div>
 
           <!-- Scrollable Content -->
@@ -356,7 +424,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -373,6 +441,44 @@ const router = useRouter()
 const channelsList = ref<Channel[]>([])
 const currentChannelData = ref<Channel | null>(null)
 const currentChannelId = ref<number | null>(null)
+const sortMode = ref<'recent' | 'oldest' | 'trending'>('recent')
+const viewMode = ref<'grid' | 'normal'>('grid')
+// Palette de couleurs prédéfinies pour les posts (simulées)
+const colorPalettes = [
+  ['#8B4513', '#D2691E', '#F5DEB3', '#FAEBD7', '#2F4F4F'],
+  ['#800020', '#C41E3A', '#E8CCD7', '#F5F5DC', '#36454F'],
+  ['#556B2F', '#8FBC8F', '#F0E68C', '#FAF0E6', '#483C32'],
+  ['#191970', '#4169E1', '#B0C4DE', '#F0F8FF', '#2C3E50'],
+  ['#8B008B', '#DA70D6', '#E6E6FA', '#FFF0F5', '#4A4A4A'],
+  ['#B8860B', '#DAA520', '#FFFACD', '#FFFFF0', '#696969'],
+  ['#CD5C5C', '#F08080', '#FFE4E1', '#FFF5EE', '#3C1414'],
+  ['#008080', '#20B2AA', '#E0FFFF', '#F0FFFF', '#2F4F4F'],
+]
+
+function getPostPalette(postId: number): string[] {
+  return colorPalettes[postId % colorPalettes.length] ?? []
+}
+
+// Publications triées selon le filtre actif
+const sortedPublications = computed(() => {
+  const pubs = currentChannelData.value?.publications
+  if (!pubs || pubs.length === 0) return []
+  const copy = [...pubs]
+  switch (sortMode.value) {
+    case 'recent':
+      return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    case 'oldest':
+      return copy.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    case 'trending':
+      return copy.sort((a, b) => {
+        const scoreA = (a.reactions?.length || 0) + (a.comments?.length || 0)
+        const scoreB = (b.reactions?.length || 0) + (b.comments?.length || 0)
+        return scoreB - scoreA
+      })
+    default:
+      return copy
+  }
+})
 
 // Formulaire
 const showModal = ref(false)
@@ -392,6 +498,7 @@ const loadingList = ref(false)
 const loadingFeed = ref(false)
 const errorMsg = ref('')
 const openMenuId = ref<number | null>(null)
+const showProfileMenu = ref(false)
 
 // Modal détails publication
 const showPostModal = ref(false)
@@ -799,6 +906,9 @@ function handleClickOutside(event: MouseEvent) {
   if (!target.closest('.channel-menu')) {
     openMenuId.value = null
   }
+  if (!target.closest('.nav-profile')) {
+    showProfileMenu.value = false
+  }
 }
 
 onMounted(() => {
@@ -842,7 +952,7 @@ onUnmounted(() => {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -866,7 +976,7 @@ onUnmounted(() => {
   top: 100%;
   background: var(--bg-card);
   border: 1px solid var(--border-main);
-  border-radius: 8px;
+  border-radius: 3px;
   padding: 4px;
   min-width: 140px;
   z-index: 100;
@@ -884,7 +994,7 @@ onUnmounted(() => {
   color: var(--text-secondary);
   font-size: 14px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 3px;
   transition: background 0.2s;
 }
 
@@ -932,6 +1042,7 @@ onUnmounted(() => {
   z-index: 2000;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
+  padding: 40px 20px;
 }
 
 .post-detail-card {
@@ -939,8 +1050,8 @@ onUnmounted(() => {
   background: var(--bg-card);
   width: 90vw;
   max-width: 1100px;
-  height: 85vh;
-  border-radius: 12px;
+  max-height: 80vh;
+  border-radius: 3px;
   overflow: hidden;
   position: relative;
   box-shadow: 0 25px 60px rgba(0,0,0,0.3);
@@ -948,29 +1059,36 @@ onUnmounted(() => {
 
 .close-btn-float {
   position: absolute;
-  top: -40px;
-  right: 0px;
-  background: none;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.4);
   color: white;
   border: none;
-  font-size: 32px;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   cursor: pointer;
   z-index: 10;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+  transition: background 0.2s;
 }
 
 .close-btn-float:hover {
-  transform: scale(1.2);
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
 }
 
 @media (max-width: 768px) {
   .post-detail-card {
     flex-direction: column;
-    height: 95vh;
+    max-height: 90vh;
     width: 95vw;
     overflow-y: auto;
-    border-radius: 8px;
+    border-radius: 3px;
   }
   .post-media-section {
     max-height: 50vh;
@@ -1068,7 +1186,7 @@ onUnmounted(() => {
 
 .detail-scrollable::-webkit-scrollbar-thumb {
   background: var(--border-main);
-  border-radius: 4px;
+  border-radius: 20px;
 }
 
 .post-caption-box {
@@ -1203,7 +1321,7 @@ onUnmounted(() => {
   flex: 1;
   background: var(--bg-input);
   border: 1px solid var(--border-input);
-  border-radius: 20px;
+  border-radius: 3px;
   padding: 10px 16px;
   color: var(--text-primary);
   font-family: 'Afacad', sans-serif;
@@ -1222,14 +1340,14 @@ onUnmounted(() => {
 }
 
 .post-btn {
-  background-color: #111827;
+  background-color: #414141;
   color: #ffffff;
   border: none;
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   font-size: 13px;
   padding: 8px 16px;
-  border-radius: 20px;
+  border-radius: 3px;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
   text-transform: uppercase;
@@ -1237,7 +1355,7 @@ onUnmounted(() => {
 }
 
 .post-btn:hover {
-  background-color: #1f2937;
+  background-color: #555555;
   transform: translateY(-1px);
 }
 
@@ -1274,15 +1392,15 @@ onUnmounted(() => {
 
 .toast-item {
   padding: 12px 20px;
-  border-radius: 6px;
+  border-radius: 3px;
   font-size: 14px;
   font-weight: 500;
   color: #ffffff; /* White text */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
   max-width: 360px;
-  background-color: #1f2937; /* Dark gray background */
-  border: 1px solid #374151; /* Subtle border */
+  background-color: #555555; /* Dark gray background */
+  border: 1px solid #666666; /* Subtle border */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1322,7 +1440,7 @@ onUnmounted(() => {
 .theme-toggle-btn {
   background: none;
   border: 1px solid var(--border-input);
-  border-radius: 6px;
+  border-radius: 3px;
   padding: 6px 14px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
