@@ -193,9 +193,10 @@ async function submit() {
   min-height: 100vh;
   display: flex;
   align-items: stretch;
-  background-color: #ffffff;
+  background-color: var(--bg-card, #ffffff);
   font-family: 'Afacad', sans-serif;
   line-height: 1.6;
+  transition: background-color 0.3s ease;
 }
 
 /* Carrousel d'images à gauche */
@@ -206,7 +207,7 @@ async function submit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f4f4f5;
+  background-color: var(--bg-input-alt, #f4f4f5);
 }
 
 .slideshow {
@@ -257,7 +258,7 @@ async function submit() {
 .auth-card {
   flex: 1;
   max-width: 500px;
-  background: #ffffff;
+  background: var(--bg-card, #ffffff);
   padding: 40px 60px;
   display: flex;
   flex-direction: column;
@@ -272,13 +273,13 @@ async function submit() {
   margin-top: 0;
   font-weight: 700;
   letter-spacing: -2px;
-  color: #111827;
+  color: var(--text-primary, #111827);
 }
 
 .auth-title {
   font-size: 16px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
   margin-bottom: 20px;
   font-family: 'Space Grotesk', sans-serif;
   letter-spacing: -0.5px;
@@ -286,7 +287,7 @@ async function submit() {
 
 .auth-description {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
   margin-bottom: 30px;
   text-align: center;
   line-height: 1.5;
@@ -307,23 +308,23 @@ async function submit() {
 .auth-input {
   width: 100%;
   padding: 14px 12px;
-  background: #f4f4f5;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-input-alt, #f4f4f5);
+  border: 1px solid var(--border-light, #e5e7eb);
   border-radius: 6px;
   font-size: 15px;
   outline: none;
   font-family: 'Afacad', sans-serif;
   transition: all 0.2s;
-  color: #111827;
+  color: var(--text-primary, #111827);
 }
 
 .auth-input::placeholder {
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
 }
 
 .auth-input:focus {
-  border-color: #111827;
-  background: #ffffff;
+  border-color: var(--text-primary, #111827);
+  background: var(--bg-input, #ffffff);
 }
 
 .auth-btn {
@@ -352,7 +353,7 @@ async function submit() {
 
 .divider {
   margin: 25px 0;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
   font-size: 13px;
   font-weight: 500;
   width: 100%;
@@ -367,14 +368,14 @@ async function submit() {
 .divider::before, .divider::after {
   content: '';
   height: 1px;
-  background: #e5e7eb;
+  background: var(--border-light, #e5e7eb);
   flex: 1;
 }
 
 .toggle-link {
   background: none;
   border: none;
-  color: #111827;
+  color: var(--text-primary, #111827);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -384,7 +385,7 @@ async function submit() {
 }
 
 .toggle-link:hover {
-  color: #374151;
+  color: var(--text-secondary, #374151);
 }
 
 .error-msg {

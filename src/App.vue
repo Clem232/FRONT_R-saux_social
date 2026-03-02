@@ -4,7 +4,14 @@
 </template>
 
 <script setup lang="ts">
-// Rien à importer ici
+import { onMounted } from 'vue'
+import { useThemeStore } from './stores/theme'
+
+const themeStore = useThemeStore()
+
+onMounted(() => {
+  themeStore.initTheme()
+})
 </script>
 
 <style scoped>

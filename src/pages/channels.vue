@@ -19,6 +19,9 @@
       <div class="nav-content">
         <h1 class="lumine-logo">Lumi.</h1>
         <div class="nav-icons">
+          <button @click="themeStore.toggleTheme()" class="theme-toggle-btn" title="Basculer le thème">
+            {{ themeStore.isDark ? 'Light mode' : 'Dark mode' }}
+          </button>
           <button @click="openModal" class="btn-primary">+ Créer</button>
           <button @click="logout" class="btn-text danger">Déconnexion</button>
         </div>
@@ -36,7 +39,14 @@
         <div v-if="currentChannelData && !loadingFeed">
           
           <div class="feed-header-info">
-             <h2 class="current-channel-title">#{{ currentChannelData.name }}</h2>
+             <div class="channel-title-wrapper">
+               <h2 class="current-channel-title">#{{ currentChannelData.name }}</h2>
+               <div class="info-tooltip-container">
+                 <svg class="info-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" fill-rule="evenodd" d="M10 3a7 7 0 100 14 7 7 0 000-14zm-9 7a9 9 0 1118 0 9 9 0 01-18 0zm10.01 4a1 1 0 01-1 1H10a1 1 0 110-2h.01a1 1 0 011 1zM11 6a1 1 0 10-2 0v5a1 1 0 102 0V6z"></path> </g></svg>
+                 <div class="tooltip-text">Partagez ici vos idées de mode à petit budget et vos créations DIY !</div>
+               </div>
+             </div>
+             <p class="channel-description">Découvrez les dernières tendances, astuces créatives et bons plans de la communauté.</p>
              <span class="pub-count-badge">{{ currentChannelData.publications?.length || 0 }} publications</span>
           </div>
 
@@ -96,8 +106,10 @@
       <aside class="lumine-sidebar">
         
         <div class="sidebar-header">
-           <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-           <span>CHAÎNES</span>
+           <div style="display: flex; align-items: center; gap: 10px;">
+             <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+             <span>CHAÎNES</span>
+           </div>
         </div>
 
         <div class="channel-list">
@@ -195,7 +207,7 @@
         </div>
 
         <div class="modal-body">
-          <p style="margin-bottom: 12px; font-size: 14px; color: #6b7280;">
+          <p style="margin-bottom: 12px; font-size: 14px; color: var(--text-muted);">
              Donnez un nom à votre nouveau salon de discussion.
           </p>
           <input 
@@ -217,13 +229,13 @@
           <span class="modal-title" style="margin: 0 auto; color: #ef4444;">Supprimer ?</span>
         </div>
         <div class="modal-body" style="text-align: center;">
-          <p style="color: #4b5563; font-size: 15px;">
+          <p style="color: var(--text-secondary); font-size: 15px;">
             Voulez-vous vraiment supprimer cette publication ?
-            <br><span style="font-size: 13px; color: #9ca3af;">Cette action est irréversible.</span>
+            <br><span style="font-size: 13px; color: var(--text-subtle);">Cette action est irréversible.</span>
           </p>
           <div style="display: flex; gap: 12px; justify-content: center; margin-top: 10px;">
-             <button @click="cancelDeletePost" class="btn-text" style="background: #f3f4f6; padding: 10px 20px; border-radius: 6px;">Annuler</button>
-             <button @click="executeDeletePost" class="btn-text danger" style="background: #fee2e2; padding: 10px 20px; border-radius: 6px;">Supprimer</button>
+             <button @click="cancelDeletePost" class="btn-text" style="background: var(--bg-hover); padding: 10px 20px; border-radius: 6px;">Annuler</button>
+             <button @click="executeDeletePost" class="btn-text danger" style="background: var(--bg-hover); padding: 10px 20px; border-radius: 6px;">Supprimer</button>
           </div>
         </div>
       </div>
@@ -328,6 +340,18 @@
         <span class="bg-word w7">ART</span>
     </div>
 
+    <!-- FOOTER -->
+    <footer class="lumine-footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Lumi. - Partagez vos idées mode à petit budget.</p>
+        <div class="footer-links">
+          <a href="#">À propos</a>
+          <a href="#">Conditions d'utilisation</a>
+          <a href="#">Confidentialité</a>
+        </div>
+      </div>
+    </footer>
+
   </div>
 </template>
 
@@ -335,12 +359,14 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
 import { channelService, publicationService, API_CONFIG } from '@/services'
 import type { Channel, Publication } from '@/types'
 import '@/assets/instagram.css'
 import '@/assets/instagram-bg.css'
 
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const router = useRouter()
 
 // Données
@@ -820,7 +846,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a0a0a0;
+  color: var(--text-subtle);
   opacity: 0;
   transition: opacity 0.2s, background 0.2s;
 }
@@ -830,16 +856,16 @@ onUnmounted(() => {
 }
 
 .menu-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .menu-dropdown {
   position: absolute;
   right: 0;
   top: 100%;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
   border-radius: 8px;
   padding: 4px;
   min-width: 140px;
@@ -855,7 +881,7 @@ onUnmounted(() => {
   padding: 8px 12px;
   border: none;
   background: transparent;
-  color: #e0e0e0;
+  color: var(--text-secondary);
   font-size: 14px;
   cursor: pointer;
   border-radius: 6px;
@@ -863,7 +889,7 @@ onUnmounted(() => {
 }
 
 .menu-option:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
 }
 
 .menu-option.delete {
@@ -910,7 +936,7 @@ onUnmounted(() => {
 
 .post-detail-card {
   display: flex;
-  background: #ffffff;
+  background: var(--bg-card);
   width: 90vw;
   max-width: 1100px;
   height: 85vh;
@@ -954,7 +980,7 @@ onUnmounted(() => {
 /* LEFT SECTION: MEDIA */
 .post-media-section {
   flex: 1.4;
-  background: #fafafa;
+  background: var(--bg-input-alt);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -963,7 +989,7 @@ onUnmounted(() => {
 }
 
 .post-media-section.no-media {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--bg-input-alt) 0%, var(--bg-hover) 100%);
 }
 
 .detail-main-img {
@@ -973,7 +999,7 @@ onUnmounted(() => {
 }
 
 .no-image-placeholder {
-  color: #a0a0a0;
+  color: var(--text-subtle);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -991,15 +1017,15 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  border-left: 1px solid #efefef;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-light);
   min-width: 340px;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .detail-header {
   padding: 16px;
-  border-bottom: 1px solid #efefef;
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1027,7 +1053,7 @@ onUnmounted(() => {
 .author-name {
   font-weight: 600;
   font-size: 14px;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .detail-scrollable {
@@ -1041,7 +1067,7 @@ onUnmounted(() => {
 }
 
 .detail-scrollable::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
+  background: var(--border-main);
   border-radius: 4px;
 }
 
@@ -1053,19 +1079,19 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 6px;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .post-body-detail {
   font-size: 14px;
-  color: #555;
+  color: var(--text-muted);
   white-space: pre-wrap;
   line-height: 1.5;
 }
 
 .post-date {
   font-size: 11px;
-  color: #8e8e8e;
+  color: var(--text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 8px;
@@ -1073,12 +1099,12 @@ onUnmounted(() => {
 
 .separator {
   height: 1px;
-  background: #efefef;
+  background: var(--border-light);
   margin: 16px 0;
 }
 
 .no-comments {
-  color: #8e8e8e;
+  color: var(--text-subtle);
   font-size: 14px;
   text-align: center;
   padding: 20px 0;
@@ -1096,7 +1122,7 @@ onUnmounted(() => {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #efefef;
+  background: var(--bg-hover);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1107,31 +1133,31 @@ onUnmounted(() => {
 .comment-body {
   font-size: 14px;
   line-height: 1.4;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .comment-author {
   font-weight: 600;
   margin-right: 6px;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .comment-text {
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .comment-date {
   display: block;
   font-size: 11px;
-  color: #8e8e8e;
+  color: var(--text-subtle);
   margin-top: 4px;
 }
 
 /* FOOTER */
 .detail-footer {
-  border-top: 1px solid #efefef;
+  border-top: 1px solid var(--border-light);
   padding: 12px 16px;
-  background: #ffffff;
+  background: var(--bg-card);
 }
 
 .action-buttons {
@@ -1146,7 +1172,7 @@ onUnmounted(() => {
   border: none;
   cursor: pointer;
   padding: 4px;
-  color: #262626;
+  color: var(--text-primary);
   transition: transform 0.15s;
 }
 
@@ -1161,25 +1187,25 @@ onUnmounted(() => {
 .likes-count {
   font-weight: 600;
   font-size: 14px;
-  color: #262626;
+  color: var(--text-primary);
 }
 
 .add-comment-box {
   display: flex;
   align-items: center;
   gap: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-light);
   padding: 16px;
-  background: #f9fafb;
+  background: var(--bg-input-alt);
 }
 
 .add-comment-box input {
   flex: 1;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
   border-radius: 20px;
   padding: 10px 16px;
-  color: #111827;
+  color: var(--text-primary);
   font-family: 'Afacad', sans-serif;
   font-size: 14px;
   outline: none;
@@ -1187,12 +1213,12 @@ onUnmounted(() => {
 }
 
 .add-comment-box input:focus {
-  border-color: #111827;
-  box-shadow: 0 0 0 1px #111827;
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--text-primary);
 }
 
 .add-comment-box input::placeholder {
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .post-btn {
@@ -1288,6 +1314,29 @@ onUnmounted(() => {
 .toast-leave-to {
   opacity: 0;
   transform: translateX(40px) scale(0.95);
+}
+
+/* ====================== */
+/* THEME TOGGLE BUTTON    */
+/* ====================== */
+.theme-toggle-btn {
+  background: none;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.3px;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 </style>
