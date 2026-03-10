@@ -1,19 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AuthView from '../pages/AuthView.vue'
-import ChannelView from '../pages/channels.vue'
 import { useUserStore } from '@/stores/user'  // store pour le token
 
 const routes = [
   // Redirection par défaut vers login
   { path: '/', redirect: '/auth/login' },
 
-  // Page de connexion / inscription
-  { path: '/auth/login', component: AuthView },
+  // Page de connexion / inscription — chargée de façon différée
+  {
+    path: '/auth/login',
+    component: () => import('../pages/AuthView.vue')
+  },
 
-  // Page channels unique, protégée par authentification
+  // Page channels unique, protégée par authentification — chargée de façon différée
   {
     path: '/channels',
-    component: ChannelView,
+    component: () => import('../pages/channels.vue'),
     meta: { requiresAuth: true }
   },
 ]

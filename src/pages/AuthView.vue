@@ -9,15 +9,23 @@
           :key="index"
           :src="image" 
           :class="{ active: currentImage === index }"
-          alt="Connexion illustration"
+          alt="Illustration de mode"
+          :loading="index === 0 ? 'eager' : 'lazy'"
+          :fetchpriority="index === 0 ? 'high' : 'low'"
         />
       </div>
-      <div class="slideshow-dots">
+      <div class="slideshow-dots" role="tablist" aria-label="Navigation du carrousel">
         <span 
           v-for="(_, index) in images" 
           :key="index" 
           :class="{ active: currentImage === index }"
           @click="currentImage = index"
+          role="button"
+          :aria-label="`Image ${index + 1} sur ${images.length}`"
+          :aria-pressed="currentImage === index"
+          tabindex="0"
+          @keyup.enter="currentImage = index"
+          @keyup.space.prevent="currentImage = index"
         ></span>
       </div>
     </div>
@@ -34,7 +42,9 @@
       <form @submit.prevent="submit" class="auth-form">
         
         <div v-if="!isLogin" class="form-group">
+          <label for="display-name" class="sr-only">Nom d'utilisateur</label>
           <input
+            id="display-name"
             v-model="displayName"
             type="text"
             placeholder="Nom d'utilisateur"
@@ -44,7 +54,9 @@
         </div>
         
         <div class="form-group">
+          <label for="email" class="sr-only">Adresse e-mail</label>
           <input 
+            id="email"
             v-model="email" 
             type="email" 
             placeholder="Email" 
@@ -54,7 +66,9 @@
         </div>
 
         <div class="form-group">
+          <label for="password" class="sr-only">Mot de passe</label>
           <input 
+            id="password"
             v-model="password" 
             type="password" 
             placeholder="Mot de passe" 
@@ -67,6 +81,7 @@
           {{ isLoading ? 'Chargement...' : (isLogin ? 'Se connecter' : "S'inscrire") }}
         </button>
 
+        <p v-if="successMsg" class="success-msg">{{ successMsg }}</p>
         <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
       </form>
 
@@ -117,6 +132,7 @@ const email = ref('')
 const password = ref('')
 const displayName = ref('')
 const errorMsg = ref('')
+const successMsg = ref('')
 
 // --- CONFIGURATION ---
 const slug = 'ws-v' 
@@ -127,6 +143,7 @@ const API_URL = 'https://wra506d.davidannebicque.ovh/api'
 function toggle() {
   isLogin.value = !isLogin.value
   errorMsg.value = ''
+  successMsg.value = ''
   displayName.value = ''
 }
 
@@ -139,6 +156,7 @@ async function submit() {
     // ÉTAPE 1 : INSCRIPTION (Seulement si on est en mode Register)
     // ----------------------------------------------------
     if (!isLogin.value) {
+      // registerWithSlug → POST /api/{slug}/register
       const registerRes = await fetch(`${API_URL}/${slug}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,12 +168,27 @@ async function submit() {
       })
 
       if (!registerRes.ok) {
-        // Tentative de récupération du message d'erreur précis
-        const errData = await registerRes.json().catch(() => ({}))
-        throw new Error(errData.detail || errData.message || "Erreur lors de l'inscription")
+        // Afficher la réponse brute du serveur pour diagnostiquer
+        const errText = await registerRes.text()
+        let errMsg = `Erreur ${registerRes.status}`
+        try {
+          const errData = JSON.parse(errText)
+          errMsg = errData['hydra:description'] || errData.detail || errData.message || errData.error || errText
+        } catch {
+          errMsg = errText || errMsg
+        }
+        console.error('API register response:', registerRes.status, errText)
+        throw new Error(errMsg)
       }
-      
-      console.log('Inscription réussie ! Connexion en cours...')
+
+      // Inscription réussie → on réinitialise le formulaire
+      // pour pouvoir inscrire quelqu'un d'autre ou se connecter
+      successMsg.value = `Compte créé pour ${displayName.value} ! Vous pouvez maintenant vous connecter.`
+      displayName.value = ''
+      email.value = ''
+      password.value = ''
+      isLogin.value = true   // bascule vers l'onglet connexion
+      return
     }
 
     // ----------------------------------------------------
@@ -177,7 +210,7 @@ async function submit() {
     }
 
     userStore.login(loginData.token)
-    userStore.setUser({ email: email.value }) // Ou récupérer profil si dispo
+    userStore.setUser({ email: email.value })
 
     router.push('/channels')
 
@@ -402,15 +435,62 @@ async function submit() {
   font-family: 'Afacad', sans-serif;
 }
 
+.success-msg {
+  color: #16a34a;
+  font-size: 13px;
+  margin-top: 15px;
+  text-align: center;
+  font-family: 'Afacad', sans-serif;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 3px;
+  padding: 10px 14px;
+}
+
 /* Responsive - cacher les images sur mobile */
 @media (max-width: 768px) {
+  .auth-wrapper {
+    align-items: flex-start;
+  }
+
   .auth-images {
     display: none;
   }
-  
+
   .auth-card {
     max-width: 100%;
-    padding: 40px 20px;
+    padding: 48px 24px 32px;
+    min-height: 100vh;
+    justify-content: center;
+  }
+
+  .logo {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .auth-input {
+    font-size: 16px; /* évite le zoom automatique sur iOS */
+    padding: 15px 14px;
+    min-height: 50px;
+  }
+
+  .auth-btn {
+    min-height: 50px;
+    font-size: 16px;
+  }
+
+  .toggle-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .auth-card {
+    padding: 40px 16px 24px;
   }
 }
 </style>

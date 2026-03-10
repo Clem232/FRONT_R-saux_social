@@ -72,6 +72,22 @@ export const channelService = {
   },
 
   /**
+   * Modifier le nom d'un channel (PATCH)
+   */
+  async update(token: string, id: number, name: string): Promise<Channel> {
+    const res = await fetch(getApiUrl(`/channels/${id}`), {
+      method: 'PATCH',
+      headers: { ...getAuthHeaders(token), 'Content-Type': 'application/merge-patch+json' },
+      body: JSON.stringify({ name })
+    })
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}))
+      throw new Error(error['hydra:description'] || error.detail || error.message || 'Erreur lors de la modification du salon')
+    }
+    return await res.json()
+  },
+
+  /**
    * Supprimer un channel par son ID numérique
    * @param token - Token d'authentification
    * @param id - ID numérique du channel (pas le slug!)

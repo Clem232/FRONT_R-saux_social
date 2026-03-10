@@ -361,10 +361,15 @@
 
 .post-image-container {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   background-color: var(--post-image-bg);
   position: relative;
+}
+
+/* Grid mode: keep square images */
+.compact-post .post-image-container {
+  aspect-ratio: 1 / 1;
 }
 
 .post-image {
@@ -379,9 +384,34 @@
   transform: scale(1.04);
 }
 
-/* New styles for always-visible text content */
+/* Text overlay inside image (normal view) */
+.post-content-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 10px 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.post-content-overlay .post-mini-title {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.post-content-overlay .post-mini-body {
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Fallback text (no image) */
 .post-content {
-    border-top: 0.5px solid var(--border-card);
+  border-top: 0.5px solid var(--border-card);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
@@ -390,23 +420,26 @@
 
 .post-mini-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .post-mini-body {
   font-family: 'Afacad', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
   margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* Adjust overlay to cover only image or disappear? 
@@ -1216,4 +1249,396 @@
 }
 .theme-toggle-btn:active {
   transform: scale(0.95);
+}
+
+/* ============================================ */
+/* RESPONSIVE — TABLETTE (max-width: 1024px)    */
+/* ============================================ */
+@media (max-width: 1024px) {
+  .main-layout {
+    padding: 20px 16px;
+    gap: 20px;
+  }
+
+  .lumine-sidebar {
+    width: 200px;
+  }
+
+  .feed-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .feed-grid.compact-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================ */
+/* RESPONSIVE — MOBILE (max-width: 768px)       */
+/* ============================================ */
+@media (max-width: 768px) {
+
+  /* --- NAVIGATION --- */
+  .lumine-nav {
+    height: 52px;
+  }
+
+  .nav-content {
+    padding: 0 12px;
+  }
+
+  .lumine-logo {
+    font-size: 26px;
+    letter-spacing: -1.5px;
+  }
+
+  /* Cacher le bouton thème dans la nav sur mobile (gain d'espace) */
+  .theme-toggle-btn {
+    display: none;
+  }
+
+  .btn-primary {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+
+  .nav-icons {
+    gap: 8px;
+  }
+
+  .nav-profile-btn {
+    padding: 5px 8px;
+  }
+
+  .nav-avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* --- MISE EN PAGE PRINCIPALE — empilement vertical --- */
+  .main-layout {
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  /* --- SIDEBAR → bande de chaînes horizontale en haut --- */
+  .lumine-sidebar {
+    width: 100%;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--border-main);
+    padding: 10px 12px;
+    position: static;
+    top: auto;
+    box-shadow: none;
+    animation: none;
+    order: -1; /* passer avant le feed */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Titre "CHAÎNES" masqué sur mobile */
+  .sidebar-header {
+    display: none;
+  }
+
+  /* Liste horizontale scrollable */
+  .channel-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .channel-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Chaque salon devient un chip horizontal */
+  .channel-item {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-light);
+    white-space: nowrap;
+    font-size: 14px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .channel-item.active {
+    background: var(--text-primary);
+    color: #ffffff;
+    border-color: var(--text-primary);
+    border-left-width: 1px;
+    padding-left: 14px;
+  }
+
+  .dark .channel-item.active {
+    background: #475569;
+    border-color: #64748b;
+  }
+
+  .channel-hash {
+    display: none;
+  }
+
+  /* Bouton menu toujours visible en mode chip */
+  .menu-btn {
+    opacity: 0.6;
+    padding: 2px;
+  }
+
+  .channel-item:hover .menu-btn {
+    opacity: 1;
+  }
+
+  /* Bouton "Nouveau salon" → chip compact */
+  .create-channel-btn {
+    flex-shrink: 0;
+    width: auto;
+    padding: 6px 14px;
+    margin-top: 0;
+    border-radius: 20px;
+    white-space: nowrap;
+    font-size: 13px;
+    min-height: 36px;
+  }
+
+  .create-channel-btn:hover {
+    transform: none;
+  }
+
+  /* --- FEED CONTENT --- */
+  .feed-content {
+    border: none;
+    border-radius: 0;
+    padding: 12px;
+    animation: none;
+    box-shadow: none;
+  }
+
+  .feed-header-info {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .current-channel-title {
+    font-size: 18px;
+  }
+
+  .channel-description {
+    font-size: 13px;
+  }
+
+  /* Grille 2 colonnes sur mobile */
+  .feed-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .feed-grid.compact-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px;
+  }
+  
+  /* Désactiver l'effet hover qui reste "collé" sur les écrans tactiles */
+  .lumine-post:active {
+    transform: scale(0.98) !important;
+  }
+  
+  .lumine-post:hover {
+    transform: none;
+    box-shadow: var(--shadow-post);
+  }
+
+  /* Filtres défilants horizontalement */
+  .feed-filters {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .feed-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-btn {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    font-size: 12px;
+    min-height: 34px;
+  }
+
+  .channel-title-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* --- MODALES — plein écran, s'ouvrent par le bas --- */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    animation: modalMobileSlideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  @keyframes modalMobileSlideUp {
+    from { transform: translateY(100%); opacity: 0.6; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* Modale détail post — plein écran mobile */
+  .post-detail-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* Indicateur de "pull" (drag handle) pour les modales mobiles */
+  .modal-card::before, .post-detail-card::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--border-light);
+    border-radius: 4px;
+    margin: 8px auto 8px;
+  }
+
+  .post-detail-card {
+    width: 100%;
+    max-width: 100%;
+    max-height: 96vh;
+    border-radius: 16px 16px 0 0;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: modalMobileSlideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .post-media-section {
+    max-height: 60vh;
+    flex: none;
+    background: #000;
+  }
+  
+  .post-media-section img {
+    object-fit: contain;
+  }
+
+  .post-info-section {
+    min-width: 0;
+    border-left: none;
+    border-top: 1px solid var(--border-light);
+    flex: 1;
+  }
+
+  /* --- FAB — cible tactile plus accessible --- */
+  .fab-create {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    width: 54px;
+    height: 54px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .fab-create svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* --- TOASTS — en bas sur mobile --- */
+  .toast-container {
+    top: auto;
+    bottom: 84px;
+    right: 12px;
+    left: 12px;
+    align-items: center;
+  }
+
+  .toast-item {
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  /* --- PROFIL DROPDOWN — pleine largeur sur mobile --- */
+  .profile-dropdown {
+    width: calc(100vw - 24px);
+    right: 0;
+  }
+
+  /* --- MENU DROPDOWN SALON --- */
+  .menu-dropdown {
+    right: 0;
+    left: auto;
+  }
+
+  /* --- TEXTE POST (mode normal) --- */
+  .post-mini-title {
+    font-size: 12px;
+  }
+
+  .post-mini-body {
+    font-size: 11px;
+    -webkit-line-clamp: 1;
+  }
+
+  .post-content-overlay {
+    padding: 20px 8px 8px;
+  }
+}
+
+/* ============================================ */
+/* RESPONSIVE — PETITS MOBILES (max-width: 480px) */
+/* ============================================ */
+@media (max-width: 480px) {
+  .nav-content {
+    padding: 0 8px;
+  }
+
+  .lumine-logo {
+    font-size: 22px;
+  }
+
+  /* Grille 1 colonne sur très petit écran */
+  .feed-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .feed-grid.compact-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+
+  .feed-content {
+    padding: 8px;
+  }
+
+  .lumine-sidebar {
+    padding: 8px 8px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
 }

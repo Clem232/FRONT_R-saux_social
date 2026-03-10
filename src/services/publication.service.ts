@@ -44,6 +44,22 @@ export const publicationService = {
   },
 
   /**
+   * Modifier le titre et le corps d'une publication (PATCH)
+   */
+  async update(token: string, id: number, data: { title: string; body: string }): Promise<Publication> {
+    const res = await fetch(getApiUrl(`/publications/${id}`), {
+      method: 'PATCH',
+      headers: { ...getAuthHeaders(token), 'Content-Type': 'application/merge-patch+json' },
+      body: JSON.stringify(data)
+    })
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}))
+      throw new Error(error['hydra:description'] || error.detail || error.message || 'Erreur lors de la modification')
+    }
+    return await res.json()
+  },
+
+  /**
    * Supprimer une publication
    */
   async delete(token: string, id: number): Promise<void> {
@@ -136,6 +152,23 @@ export const publicationService = {
       const errBody = await res.text().catch(() => '')
       console.error('[addComment] Error:', res.status, errBody)
       throw new Error(`Impossible d'ajouter le commentaire (${res.status})`)
+    }
+    return await res.json()
+  },
+
+  /**
+   * Modifier un commentaire
+   */
+  async updateComment(token: string, commentId: number, body: string): Promise<Comment> {
+    const res = await fetch(getApiUrl(`/comments/${commentId}`), {
+      method: 'PATCH',
+      headers: { ...getAuthHeaders(token), 'Content-Type': 'application/merge-patch+json' },
+      body: JSON.stringify({ body })
+    })
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      console.error('[updateComment] Error:', res.status, errBody)
+      throw new Error(`Impossible de modifier le commentaire (${res.status})`)
     }
     return await res.json()
   },

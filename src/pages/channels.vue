@@ -27,7 +27,7 @@
           
           <!-- PROFIL DROPDOWN -->
           <div class="nav-profile" @click.stop>
-            <button class="nav-profile-btn" @click="showProfileMenu = !showProfileMenu">
+            <button class="nav-profile-btn" @click="showProfileMenu = !showProfileMenu" :aria-label="showProfileMenu ? 'Fermer le menu profil' : 'Ouvrir le menu profil'" :aria-expanded="showProfileMenu">
               <div class="nav-avatar">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
@@ -75,10 +75,10 @@
                  </div>
                </div>
                <div class="view-toggle">
-                 <button class="view-toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="Vue grille compacte">
+                 <button class="view-toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="Vue grille compacte" aria-label="Vue grille compacte">
                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
                  </button>
-                 <button class="view-toggle-btn" :class="{ active: viewMode === 'normal' }" @click="viewMode = 'normal'" title="Vue normale">
+                 <button class="view-toggle-btn" :class="{ active: viewMode === 'normal' }" @click="viewMode = 'normal'" title="Vue normale" aria-label="Vue normale">
                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="1"></rect><rect x="3" y="14" width="18" height="7" rx="1"></rect></svg>
                  </button>
                </div>
@@ -141,10 +141,15 @@
                      :title="color"
                    ></span>
                  </div>
+                 <!-- TEXT overlaid on image (normal view only) -->
+                 <div v-if="viewMode === 'normal'" class="post-content-overlay">
+                   <h3 class="post-mini-title">{{ pub.title }}</h3>
+                   <p class="post-mini-body">{{ pub.body }}</p>
+                 </div>
               </div>
 
-              <!-- TEXT CONTENT (hidden in grid mode) -->
-              <div v-if="viewMode === 'normal'" class="post-content">
+              <!-- TEXT CONTENT fallback when no image (normal view only) -->
+              <div v-if="viewMode === 'normal' && !hasImage(pub)" class="post-content">
                  <h3 class="post-mini-title">{{ pub.title }}</h3>
                  <p class="post-mini-body">{{ pub.body }}</p>
               </div>
@@ -160,7 +165,7 @@
                     <span>{{ pub.comments?.length || 0 }}</span>
                  </div>
                  
-                 <button class="delete-post-btn" @click.stop="confirmDeletePost(pub)">
+                 <button class="delete-post-btn" @click.stop="confirmDeletePost(pub)" aria-label="Supprimer cette publication">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                  </button>
               </div>
@@ -197,10 +202,14 @@
                <span class="channel-name">{{ channel.name }}</span>
              </div>
              <div class="channel-menu" @click.stop>
-               <button class="menu-btn" @click="toggleMenu(channel.id)">
+               <button class="menu-btn" @click="toggleMenu(channel.id)" :aria-label="`Options du salon ${channel.name}`" :aria-expanded="openMenuId === channel.id">
                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
                </button>
                <div v-if="openMenuId === channel.id" class="menu-dropdown">
+                 <button class="menu-option" @click="openEditChannelModal(channel)">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                   Modifier
+                 </button>
                  <button class="menu-option delete" @click="deleteChannel(channel)">
                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                    Supprimer
@@ -219,7 +228,7 @@
     </div>
 
     <!-- FLOATING ACTION BUTTON -->
-    <button class="fab-create" @click="openModal" title="Nouvelle publication">
+    <button class="fab-create" @click="openModal" title="Nouvelle publication" aria-label="Nouvelle publication">
        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
     </button>
 
@@ -257,7 +266,7 @@
           <input id="file-upload" type="file" @change="handleFileSelect" accept="image/*" style="display:none" />
           
           <div v-if="previewImage" class="preview-container">
-             <img :src="previewImage" class="preview-img" />
+             <img :src="previewImage" class="preview-img" alt="Aperçu de l'image sélectionnée" />
              <button @click="removeImage" class="btn-text danger remove-img-btn">Supprimer l'image</button>
           </div>
 
@@ -315,7 +324,6 @@
     <!-- MODAL DETAILS PUBLICATION (POPUP) -->
     <div v-if="showPostModal && selectedPost" class="modal-overlay post-detail-overlay" @click.self="closePostModal">
       <div class="post-detail-card">
-        <button class="close-btn-float" @click="closePostModal">&times;</button>
         
         <!-- SECTION GAUCHE : IMAGE -->
         <div class="post-media-section" :class="{ 'no-media': !hasImage(selectedPost) }">
@@ -337,6 +345,27 @@
              <div class="author-info">
                <div class="avatar-circle">{{ selectedPost.id.toString().substring(0,2) }}</div>
                <span class="author-name">Publication #{{ selectedPost.id }}</span>
+             </div>
+             <!-- 3 points : modifier / supprimer / fermer -->
+             <div class="post-detail-menu" @click.stop>
+               <button class="menu-btn post-detail-menu-btn" @click="showPostDetailMenu = !showPostDetailMenu" aria-label="Options de la publication" :aria-expanded="showPostDetailMenu">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
+               </button>
+               <div v-if="showPostDetailMenu" class="menu-dropdown post-detail-dropdown">
+                 <button class="menu-option" @click="openEditPostModal(selectedPost!)">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                   Modifier
+                 </button>
+                 <button class="menu-option delete" @click="confirmDeletePost(selectedPost!); closePostModal()">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                   Supprimer
+                 </button>
+                 <div class="menu-dropdown-divider"></div>
+                 <button class="menu-option" @click="closePostModal()">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                   Fermer
+                 </button>
+               </div>
              </div>
           </div>
 
@@ -363,8 +392,36 @@
                   </div>
                   <div class="comment-body">
                     <span class="comment-author">Utilisateur</span>
-                    <span class="comment-text">{{ comment.body }}</span>
-                    <span class="comment-date">{{ comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : '' }}</span>
+                    <!-- Mode édition inline -->
+                    <template v-if="editingCommentId === comment.id">
+                      <input
+                        v-model="editCommentText"
+                        class="comment-edit-input"
+                        @keyup.enter="saveEditComment(comment)"
+                        @keyup.escape="cancelEditComment"
+                        autofocus
+                      />
+                      <div class="comment-edit-actions">
+                        <button class="comment-save-btn" @click="saveEditComment(comment)" :disabled="savingComment || !editCommentText.trim()">
+                          {{ savingComment ? '...' : 'Sauvegarder' }}
+                        </button>
+                        <button class="comment-cancel-btn" @click="cancelEditComment">Annuler</button>
+                      </div>
+                    </template>
+                    <!-- Mode lecture -->
+                    <template v-else>
+                      <span class="comment-text">{{ comment.body }}</span>
+                      <span class="comment-date">{{ comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : '' }}</span>
+                    </template>
+                  </div>
+                  <!-- Actions edit/delete (visibles au hover, cachées en mode édition) -->
+                  <div v-if="editingCommentId !== comment.id" class="comment-actions">
+                    <button class="comment-action-btn" @click="openEditComment(comment)" title="Modifier" aria-label="Modifier le commentaire">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="comment-action-btn danger" @click="deleteCommentFromPost(comment)" title="Supprimer" aria-label="Supprimer le commentaire">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                   </div>
                </div>
              </div>
@@ -394,6 +451,55 @@
           
         </div>
 
+      </div>
+    </div>
+
+    <!-- MODAL EDIT PUBLICATION -->
+    <div v-if="showEditPostModal" class="modal-overlay" @click.self="showEditPostModal = false">
+      <div class="modal-card" style="max-width: 550px; height: auto;">
+        <div class="modal-header">
+          <button @click="showEditPostModal = false" class="btn-text cancel-btn">Annuler</button>
+          <span class="modal-title">Modifier la publication</span>
+          <button @click="saveEditPost" class="btn-text publish-btn" :disabled="savingPost || !editPostTitle.trim()">
+            {{ savingPost ? '...' : 'Enregistrer' }}
+          </button>
+        </div>
+        <div class="modal-body">
+          <input
+            v-model="editPostTitle"
+            type="text"
+            class="modal-input title-input"
+            placeholder="Titre"
+          />
+          <textarea
+            v-model="editPostBody"
+            class="modal-input content-input"
+            placeholder="Contenu..."
+            rows="6"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL EDIT CHANNEL -->
+    <div v-if="showEditChannelModal" class="modal-overlay" @click.self="showEditChannelModal = false">
+      <div class="modal-card" style="max-width: 400px; height: auto;">
+        <div class="modal-header">
+          <button @click="showEditChannelModal = false" class="btn-text cancel-btn">Annuler</button>
+          <span class="modal-title">Renommer le salon</span>
+          <button @click="saveEditChannel" class="btn-text publish-btn" :disabled="savingChannel || !editChannelName.trim()">
+            {{ savingChannel ? '...' : 'Enregistrer' }}
+          </button>
+        </div>
+        <div class="modal-body">
+          <input
+            v-model="editChannelName"
+            type="text"
+            class="modal-input"
+            placeholder="Nom du salon"
+            @keyup.enter="saveEditChannel"
+          />
+        </div>
       </div>
     </div>
 
@@ -507,6 +613,24 @@ const selectedPostComments = ref<any[]>([])
 const selectedPostReactions = ref<any[]>([])
 const newCommentText = ref('')
 const loadingComments = ref(false)
+const showPostDetailMenu = ref(false)
+
+// Edition publication
+const showEditPostModal = ref(false)
+const editPostTitle = ref('')
+const editPostBody = ref('')
+const savingPost = ref(false)
+
+// Edition channel
+const showEditChannelModal = ref(false)
+const editChannelName = ref('')
+const editingChannel = ref<Channel | null>(null)
+const savingChannel = ref(false)
+
+// Edition commentaire
+const editingCommentId = ref<number | null>(null)
+const editCommentText = ref('')
+const savingComment = ref(false)
 
 // Toast notifications
 const toasts = ref<{ id: number; message: string; type: 'success' | 'error' | 'info' }[]>([])
@@ -836,6 +960,66 @@ function closePostModal() {
   selectedPostComments.value = []
   selectedPostReactions.value = []
   newCommentText.value = ''
+  showPostDetailMenu.value = false
+}
+
+function openEditPostModal(pub: Publication) {
+  editPostTitle.value = pub.title
+  editPostBody.value = pub.body
+  showPostDetailMenu.value = false
+  showEditPostModal.value = true
+}
+
+async function saveEditPost() {
+  if (!userStore.token || !selectedPost.value) return
+  savingPost.value = true
+  try {
+    const updated = await publicationService.update(userStore.token, selectedPost.value.id, {
+      title: editPostTitle.value,
+      body: editPostBody.value
+    })
+    // Mettre à jour en local
+    selectedPost.value = { ...selectedPost.value, title: updated.title, body: updated.body }
+    if (currentChannelData.value?.publications) {
+      currentChannelData.value.publications = currentChannelData.value.publications.map(p =>
+        p.id === updated.id ? { ...p, title: updated.title, body: updated.body } : p
+      )
+    }
+    showEditPostModal.value = false
+    showToast('Publication modifiée', 'success')
+  } catch (e: any) {
+    showToast('Erreur : ' + e.message, 'error')
+  } finally {
+    savingPost.value = false
+  }
+}
+
+function openEditChannelModal(channel: Channel) {
+  editingChannel.value = channel
+  editChannelName.value = channel.name
+  openMenuId.value = null
+  showEditChannelModal.value = true
+}
+
+async function saveEditChannel() {
+  if (!userStore.token || !editingChannel.value) return
+  savingChannel.value = true
+  try {
+    const updated = await channelService.update(userStore.token, editingChannel.value.id, editChannelName.value)
+    // Mettre à jour localement
+    channelsList.value = channelsList.value.map(c =>
+      c.id === updated.id ? { ...c, name: updated.name } : c
+    )
+    if (currentChannelData.value?.id === updated.id) {
+      currentChannelData.value = { ...currentChannelData.value, name: updated.name }
+    }
+    showEditChannelModal.value = false
+    showToast(`Salon renommé en "${updated.name}"`, 'success')
+  } catch (e: any) {
+    showToast('Erreur : ' + e.message, 'error')
+  } finally {
+    savingChannel.value = false
+  }
 }
 
 async function sendComment() {
@@ -852,6 +1036,44 @@ async function sendComment() {
   } catch (e) {
     console.error(e)
     showToast("Impossible d'ajouter le commentaire", 'error')
+  }
+}
+
+function openEditComment(comment: any) {
+  editingCommentId.value = comment.id
+  editCommentText.value = comment.body
+}
+
+function cancelEditComment() {
+  editingCommentId.value = null
+  editCommentText.value = ''
+}
+
+async function saveEditComment(comment: any) {
+  if (!userStore.token || !editCommentText.value.trim()) return
+  savingComment.value = true
+  try {
+    const updated = await publicationService.updateComment(userStore.token, comment.id, editCommentText.value)
+    selectedPostComments.value = selectedPostComments.value.map(c =>
+      c.id === comment.id ? { ...c, body: updated.body } : c
+    )
+    editingCommentId.value = null
+    editCommentText.value = ''
+  } catch (e: any) {
+    showToast('Erreur : ' + e.message, 'error')
+  } finally {
+    savingComment.value = false
+  }
+}
+
+async function deleteCommentFromPost(comment: any) {
+  if (!userStore.token) return
+  try {
+    await publicationService.deleteComment(userStore.token, comment.id)
+    selectedPostComments.value = selectedPostComments.value.filter(c => c.id !== comment.id)
+    showToast('Commentaire supprimé', 'success')
+  } catch (e: any) {
+    showToast('Erreur : ' + e.message, 'error')
   }
 }
 
@@ -909,6 +1131,9 @@ function handleClickOutside(event: MouseEvent) {
   if (!target.closest('.nav-profile')) {
     showProfileMenu.value = false
   }
+  if (!target.closest('.post-detail-menu')) {
+    showPostDetailMenu.value = false
+  }
 }
 
 onMounted(() => {
@@ -927,7 +1152,129 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Scoped overrides if needed */
+/* ====================== */
+/* MENU 3 POINTS POST     */
+/* ====================== */
+.post-detail-menu {
+  position: relative;
+}
+
+.post-detail-menu-btn {
+  opacity: 1 !important; /* override .menu-btn { opacity: 0 } from instagram.css */
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.post-detail-menu-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.post-detail-dropdown {
+  right: 0;
+  left: auto;
+  top: calc(100% + 4px);
+}
+
+.menu-dropdown-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 0;
+}
+
+/* ====================== */
+/* COMMENT ACTIONS        */
+/* ====================== */
+.comment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.comment-item:hover .comment-actions {
+  opacity: 1;
+}
+
+.comment-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-subtle);
+  padding: 3px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.comment-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.comment-action-btn.danger:hover {
+  color: #ef4444;
+}
+
+.comment-edit-input {
+  width: 100%;
+  background: var(--bg-input, var(--bg-hover));
+  border: 1px solid var(--border-main);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  margin-top: 2px;
+  outline: none;
+}
+
+.comment-edit-input:focus {
+  border-color: var(--accent, #e91e8c);
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.comment-save-btn {
+  font-size: 12px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accent, #e91e8c);
+  padding: 0;
+}
+
+.comment-save-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.comment-cancel-btn {
+  font-size: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+}
+
+/* ====================== */
 
 .channel-item {
   display: flex;

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap (à remplacer par votre domaine réel)
+# Sitemap: https://votre-domaine.com/sitemap.xml
