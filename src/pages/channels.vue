@@ -44,6 +44,11 @@
                 </div>
               </div>
               <div class="profile-dropdown-divider"></div>
+              <router-link to="/profile" class="profile-dropdown-item" @click="showProfileMenu = false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Mon profil
+              </router-link>
+              <div class="profile-dropdown-divider"></div>
               <button @click="logout" class="profile-dropdown-item danger">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Déconnexion
@@ -223,6 +228,30 @@
            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
            Nouveau salon
         </button>
+
+        <!-- SECTION AMIS -->
+        <div class="friends-section">
+          <div class="sidebar-header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>MEMBRES</span>
+          </div>
+          <div class="friends-list">
+            <div v-for="friend in displayedUsers" :key="friend.id" class="friend-item">
+              <div class="friend-avatar">
+                {{ (friend.displayName || friend.email || '?').charAt(0).toUpperCase() }}
+              </div>
+              <div class="friend-info">
+                <span class="friend-name">{{ friend.displayName || friend.email }}</span>
+              </div>
+            </div>
+            <div v-if="usersList.length === 0" class="no-friends">
+              Aucun membre trouvé
+            </div>
+            <button v-if="usersList.length > 3" class="show-more-btn" @click="showAllMembers = !showAllMembers">
+              {{ showAllMembers ? 'Voir moins' : `Voir tout (${usersList.length})` }}
+            </button>
+          </div>
+        </div>
       </aside>
 
     </div>
@@ -534,8 +563,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
-import { channelService, publicationService, API_CONFIG } from '@/services'
-import type { Channel, Publication } from '@/types'
+import { channelService, publicationService, userService, API_CONFIG } from '@/services'
+import type { Channel, Publication, User } from '@/types'
 import '@/assets/instagram.css'
 import '@/assets/instagram-bg.css'
 
@@ -547,6 +576,12 @@ const router = useRouter()
 const channelsList = ref<Channel[]>([])
 const currentChannelData = ref<Channel | null>(null)
 const currentChannelId = ref<number | null>(null)
+const usersList = ref<User[]>([])
+const showAllMembers = ref(false)
+const displayedUsers = computed(() => {
+  if (showAllMembers.value) return usersList.value
+  return usersList.value.slice(0, 3)
+})
 const sortMode = ref<'recent' | 'oldest' | 'trending'>('recent')
 const viewMode = ref<'grid' | 'normal'>('grid')
 // Palette de couleurs prédéfinies pour les posts (simulées)
@@ -681,6 +716,16 @@ function stopPolling() {
   if (pollingTimer) {
     clearInterval(pollingTimer)
     pollingTimer = null
+  }
+}
+
+// 0. LISTE DES UTILISATEURS
+async function fetchUsers() {
+  if (!userStore.token) return
+  try {
+    usersList.value = await userService.getAll(userStore.token)
+  } catch (e) {
+    console.warn('Erreur chargement utilisateurs', e)
   }
 }
 
@@ -967,6 +1012,7 @@ function openEditPostModal(pub: Publication) {
   editPostTitle.value = pub.title
   editPostBody.value = pub.body
   showPostDetailMenu.value = false
+  showPostModal.value = false
   showEditPostModal.value = true
 }
 
@@ -1140,6 +1186,7 @@ onMounted(() => {
   if (!userStore.token) router.push('/auth/login')
   else {
     fetchChannelsList()
+    fetchUsers()
     startPolling()
   }
   document.addEventListener('click', handleClickOutside)
@@ -1802,6 +1849,86 @@ onUnmounted(() => {
   background-color: var(--bg-hover);
   border-color: var(--text-primary);
   color: var(--text-primary);
+}
+
+/* ====================== */
+/* SECTION AMIS / MEMBRES */
+/* ====================== */
+.friends-section {
+  margin-top: 24px;
+  border-top: 2px solid var(--border-color, rgba(255,255,255,0.12));
+  padding-top: 16px;
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: default;
+  transition: background 0.15s;
+}
+
+.friend-item:hover {
+  background: var(--bg-hover, rgba(255,255,255,0.05));
+}
+
+.friend-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.friend-info {
+  min-width: 0;
+}
+
+.friend-name {
+  font-size: 13px;
+  color: var(--text-primary, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.no-friends {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  text-align: center;
+}
+
+.show-more-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, rgba(255,255,255,0.5));
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.show-more-btn:hover {
+  color: var(--text-primary, #fff);
 }
 
 </style>

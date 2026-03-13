@@ -17,6 +17,13 @@ const routes = [
     component: () => import('../pages/channels.vue'),
     meta: { requiresAuth: true }
   },
+
+  // Page profil
+  {
+    path: '/profile',
+    component: () => import('../pages/ProfileView.vue'),
+    meta: { requiresAuth: true }
+  },
 ]
 
 const router = createRouter({
